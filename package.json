@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/corykim/qbuzz.git"
+    "url": "git+https://github.com/corykim/npm-qbuzz.git"
   },
   "keywords": [
     "Das",
@@ -19,7 +19,7 @@
   "author": "Cory Kim",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/corykim/qbuzz/issues"
+    "url": "https://github.com/corykim/npm-qbuzz/issues"
   },
-  "homepage": "https://github.com/corykim/qbuzz#readme"
+  "homepage": "https://github.com/corykim/npm-qbuzz#readme"
 }
