@@ -1,21 +1,38 @@
+const request = require('request');
+
+const signalHeaders = {
+  "Content-Type": "application/json"
+}
+
 /**
  * Class representing a signal to be sent to the device.
  */
 class Signal {
   /**
    * Create a signal.
-   * @param {*} name - The name of the signal
-   * @param {*} zoneId - The zone to activate
-   * @param {*} effect - The effect to activate
-   * @param {*} color - The color to activate
-   * @param {*} action - The action, if any
+   * @param {string} clientName - The name of the client registering the signal.
+   * @param {string} zoneId - The zone to activate. Enumerated in ZoneCodes.
+   * @param {string} color - The hexadecimal RGB color to activate, e.g. '#FFCCDD'
+   * @param {string} effect - The effect to activate. Enumerated in Effects. Default is empty.
+   * @param {string} action - The action. Default is empty.
+   * @param {string} name - The name of the signal. Default is empty.
+   * @param {string} pid - The product ID. Default is 'DK5QPID'.
+   * @param {boolean} isMuted - If false, the Signal Center will not create a notification.
+   *   Default is true.
+   * @pram {string} message - The message to display, if any. Default is empty.
+   * 
    */
-  constructor(name, zoneId, effect, color, action) {
-    this.name = name;
+  constructor({clientName, zoneId, color, effect = Effects.SET_COLOR, 
+      action = '', name = '', pid = 'DK5QPID', isMuted = true, message = ''} = {}) {
+    this.clientName = clientName;
     this.zoneId = zoneId;
-    this.effect = effect;
     this.color = color;
+    this.effect = effect;
+    this.name = name;
     this.action = action;
+    this.pid = pid;
+    this.isMuted = isMuted.toString();
+    this.message = message;    
   }
 }
 
@@ -25,9 +42,9 @@ class Signal {
 class Zone {
   /**
    * Create a zone
-   * @param {} code - The device's code for the zone
-   * @param {*} x - The x position of the zone
-   * @param {*} y - The y position of the zone
+   * @param {string} code - The device's code for the zone. Enumerated in ZoneCodes.
+   * @param {number} x - The x position of the zone
+   * @param {number} y - The y position of the zone
    */
   constructor(code, x, y) {
     this.code = code;
@@ -51,7 +68,29 @@ const ZoneCodes = Object.freeze({'KEY_BACKSPACE': 'KEY_BACKSPACE', 'KEY_TAB': 'K
  */
 const Effects = Object.freeze({'SET_COLOR': 'SET_COLOR', 'BLINK': 'BLINK', 'BREATHE': 'BREATHE', 'COLOR_CYCLE': 'COLOR_CYCLE', 'RIPPLE': 'RIPPLE', 'INWARD_RIPPLE': 'INWARD_RIPPLE', 'BOUNCING_LIGHT': 'BOUNCING_LIGHT', 'LASER': 'LASER', 'WAVE': 'WAVE'});
 
+var backendUrl = 'http://localhost:27301';
+
+/**
+ * Send a signal.
+ * @param {Signal} signal 
+ */
+function send(signal) {
+  request.post({
+    url: backendUrl + '/api/1.0/signals',
+    headers: signalHeaders,
+    body: signal,
+    json: true
+  }, (err) => {
+    if (err && err.code === 'ECONNREFUSED') {
+      console.error(`Error: failed to connect to ${config.qUrl}, make sure the Das Keyboard Q software` +
+        ' is running');
+    }
+  });
+}
+
 module.exports = {
+  backendUrl : backendUrl,
+  Send : send,
   Signal : Signal,
   Signals : Signals,
   Zone : Zone,
