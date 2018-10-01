@@ -74,7 +74,7 @@ var backendUrl = 'http://localhost:27301';
  * Send a signal.
  * @param {Signal} signal 
  */
-function send(signal) {
+function sendLocal(signal) {
   request.post({
     url: backendUrl + '/api/1.0/signals',
     headers: signalHeaders,
@@ -88,9 +88,32 @@ function send(signal) {
   });
 }
 
+
+/**
+ * Read the configuration from command line arguments. The first command line argument should be a JSON string.
+ */
+function readConfig() {
+  if (process.argv.length > 2) {
+    try {
+      let config = JSON.parse(process.argv[2]);
+      Object.freeze(config);
+      console.log("Configuration:\n", JSON.stringify(config));
+      return config;
+    } catch (error) {
+      console.error("Could not parse config as JSON: " + process.argv[2]);
+      process.exit(1);
+    }
+  } else {
+    return Object.freeze({});
+  }
+}
+
+
+
 module.exports = {
   backendUrl : backendUrl,
-  Send : send,
+  Config : readConfig,
+  Send : sendLocal,
   Signal : Signal,
   Signals : Signals,
   Zone : Zone,
