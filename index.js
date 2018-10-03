@@ -4,6 +4,26 @@ const signalHeaders = {
   "Content-Type": "application/json"
 }
 
+
+/**
+ * The base class for apps that run on the Q Desktop
+ */
+class QDesktopApp {
+  constructor() {
+    process.on('SIGINT', (message) => {
+      this.shutdown();
+      process.exit();
+    })
+  }
+
+  /**
+   * The extension point for any activities that should
+   * take place before shutting down.
+   */
+  shutdown() {}
+}
+
+
 /**
  * Class representing a signal to be sent to the device.
  */
@@ -113,6 +133,7 @@ function readConfig() {
 module.exports = {
   backendUrl : backendUrl,
   Config : readConfig,
+  QDesktopApp : QDesktopApp,
   Send : sendLocal,
   Signal : Signal,
   Signals : Signals,
