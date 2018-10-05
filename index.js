@@ -35,11 +35,22 @@ class QPoint {
   }
 }
 
+class QDesktopSignal {
+  /**
+   * 
+   * @param {string} extensionId The id of the Extension that is sending the signal
+   * @param {QPoint[][]} points A 2D array of QPoints expressing the signal
+   */
+  constructor(extensionId, points) {
+    this.extensionId = extensionId;
+    this.points = points;
+  }
+}
 
 /**
- * Class representing a signal to be sent to the device.
+ * Class representing a signal (version 1) to be sent to the device.
  */
-class Signal {
+class SignalV1 {
   /**
    * Create a signal.
    * @param {string} clientName - The name of the client registering the signal.
@@ -325,9 +336,6 @@ module.exports = {
   DesktopApp: QDesktopApp,
   Point: QPoint,
   Send: sendLocal,
-  Signal: Signal,
-  Signals: Signals,
-  Zone: Zone,
-  ZoneCodes: ZoneCodes,
+  Signal: DesktopSignal,
   Effects: Effects
 }
