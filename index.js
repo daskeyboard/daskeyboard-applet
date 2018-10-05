@@ -106,11 +106,6 @@ class Zone {
 }
 
 /**
- * An enumeration of preconfigured signals (pending)
- */
-const Signals = Object.freeze({});
-
-/**
  * An enumeration of zone codes
  */
 const ZoneCodes = Object.freeze({
@@ -336,6 +331,6 @@ module.exports = {
   DesktopApp: QDesktopApp,
   Point: QPoint,
   Send: sendLocal,
-  Signal: DesktopSignal,
+  Signal: QDesktopSignal,
   Effects: Effects
 }
