@@ -9,12 +9,51 @@ const signalHeaders = {
  * The base class for apps that run on the Q Desktop
  */
 class QDesktopApp {
-  constructor() {
+
+
+constructor() {
     process.on('SIGINT', (message) => {
       this.shutdown();
       process.exit();
     })
+
+    this.pollingInterval = 2000;
+    this.pollingBusy = false;
   }
+
+  /**
+   * The entry point for the app. Currently only launches the polling function,
+   * but may do other setup items later.
+   */
+  start() {
+    setInterval(() => {
+      this.poll();
+
+    }, this.pollingInterval);
+  }
+
+
+  /**
+   * Schedules the run() function at regular intervals. Currently set to a 
+   * constant value, but may become dynamic in the future.
+   */
+  poll() {
+    if (this.pollingBusy) {
+      console.log("Skipping run because we are still busy.");
+    } else {
+      this.pollingBusy = true;
+      this.run().then(this.pollingBusy = false);
+    }
+  }
+
+  /**
+   * This method is called once each polling interval. This is where most
+   * of the work should be done.
+   */
+  run() {
+    // Implement this method and do some work here.
+  }
+
 
   /**
    * The extension point for any activities that should
@@ -22,6 +61,7 @@ class QDesktopApp {
    */
   shutdown() {}
 }
+
 
 /**
  * Class representing a single point to be sent to the device
