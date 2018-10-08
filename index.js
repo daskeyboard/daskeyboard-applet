@@ -1,4 +1,4 @@
-const request = require('request');
+const request = require('request-promise');
 
 const signalHeaders = {
   "Content-Type": "application/json"
@@ -11,7 +11,7 @@ const signalHeaders = {
 class QDesktopApp {
 
 
-constructor() {
+  constructor() {
     process.on('SIGINT', (message) => {
       this.shutdown();
       process.exit();
@@ -19,6 +19,7 @@ constructor() {
 
     this.pollingInterval = 2000;
     this.pollingBusy = false;
+    this.errorState = null;
   }
 
   /**
@@ -42,7 +43,17 @@ constructor() {
       console.log("Skipping run because we are still busy.");
     } else {
       this.pollingBusy = true;
-      this.run().then(this.pollingBusy = false);
+      try {
+        this.run().then(() => {
+          this.errorState = null;
+          this.pollingBusy = false;
+        });
+      } catch (error) {
+        this.errorState = error;
+        console.error(
+          "Desktop App encountered an uncaught error in its main loop", error);
+        this.pollingBusy = false;
+      }
     }
   }
 
@@ -50,7 +61,7 @@ constructor() {
    * This method is called once each polling interval. This is where most
    * of the work should be done.
    */
-  run() {
+  async run() {
     // Implement this method and do some work here.
   }
 
@@ -66,7 +77,8 @@ constructor() {
 /**
  * Class representing a single point to be sent to the device
  * @param {string} color - The hexadecimal RGB color to activate, e.g. '#FFCCDD'
- * @param {string} effect - The effect to activate. Enumerated in Effects. Default is empty.
+ * @param {string} effect - The effect to activate. Enumerated in Effects. 
+ *   Default is empty.
  */
 class QPoint {
   constructor(color, effect = Effects.SET_COLOR) {
@@ -78,7 +90,8 @@ class QPoint {
 class QDesktopSignal {
   /**
    * 
-   * @param {string} extensionId The id of the Extension that is sending the signal
+   * @param {string} extensionId The id of the Extension that is sending the 
+   *   signal
    * @param {QPoint[][]} points A 2D array of QPoints expressing the signal
    */
   constructor(extensionId, points) {
@@ -95,13 +108,15 @@ class SignalV1 {
    * Create a signal.
    * @param {string} clientName - The name of the client registering the signal.
    * @param {string} zoneId - The zone to activate. Enumerated in ZoneCodes.
-   * @param {string} color - The hexadecimal RGB color to activate, e.g. '#FFCCDD'
-   * @param {string} effect - The effect to activate. Enumerated in Effects. Default is empty.
+   * @param {string} color - The hexadecimal RGB color to activate, e.g. 
+   *   '#FFCCDD'
+   * @param {string} effect - The effect to activate. Enumerated in Effects. 
+   *   Default is empty.
    * @param {string} action - The action. Default is empty.
    * @param {string} name - The name of the signal. Default is empty.
    * @param {string} pid - The product ID. Default is 'DK5QPID'.
-   * @param {boolean} isMuted - If false, the Signal Center will not create a notification.
-   *   Default is true.
+   * @param {boolean} isMuted - If false, the Signal Center will not create a 
+   *   notification. Default is true.
    * @pram {string} message - The message to display, if any. Default is empty.
    * 
    */
@@ -134,7 +149,8 @@ class SignalV1 {
 class Zone {
   /**
    * Create a zone
-   * @param {string} code - The device's code for the zone. Enumerated in ZoneCodes.
+   * @param {string} code - The device's code for the zone. Enumerated in 
+   *   ZoneCodes.
    * @param {number} x - The x position of the zone
    * @param {number} y - The y position of the zone
    */
@@ -322,30 +338,36 @@ const Effects = Object.freeze({
   'WAVE': 'WAVE'
 });
 
-var backendUrl = 'http://localhost:27301';
-
+const backendUrl = 'http://localhost:27301';
+const signalEndpoint = backendUrl + '/api/1.0/signals';
 
 /**
- * Send a signal.
+ * Send a signal to the local Das Keyboard Q Service.
  * @param {Signal} signal 
  */
-function sendLocal(signal) {
-  request.post({
-    url: backendUrl + '/api/1.0/signals',
+async function sendLocal(signal) {
+  return request.post({
+    uri: signalEndpoint,
     headers: signalHeaders,
     body: signal,
     json: true
-  }, (err) => {
-    if (err && err.code === 'ECONNREFUSED') {
-      console.error(`Error: failed to connect to ${config.qUrl}, make sure the Das Keyboard Q software` +
-        ' is running');
+  }).then(function (json) {
+    // no-op on successful completion
+  }).catch(function (err) {
+    const error = err.error;
+    if (error.code === 'ECONNREFUSED') {
+      console.error(`Error: failed to connect to ${signalEndpoint}, make sure`
+      + ` the Das Keyboard Q software  is running`);
+    } else {
+      console.error('Error sending signal ', error);
     }
   });
 }
 
 
 /**
- * Read the configuration from command line arguments. The first command line argument should be a JSON string.
+ * Read the configuration from command line arguments. The first command line 
+ * argument should be a JSON string.
  */
 function readConfig() {
   if (process.argv.length > 2) {
