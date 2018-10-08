@@ -52,12 +52,12 @@ Your applet communicates with the Das Keyboard Signal Center by returning
 For example, the simplest `Signal` object would be:
 
 ```
-  let signal = new q.Signal([[new q.Point('#FF0000)]]);
+  return new q.Signal([[new q.Point('#FF0000)]]);
 ```
 
 To light up a row of keys, send a single row of Points, e.g.:
 ```
-  let signal = new q.Signal([[
+  return new q.Signal([[
     new q.Point('#FF0000),
     new q.Point('#00FF00),
     new q.Point('#0000FF),
@@ -66,11 +66,19 @@ To light up a row of keys, send a single row of Points, e.g.:
 
 To light up a rectangular region, send multiple rows of points, e.g: 
 ```
-  let signal = new q.Signal([
+  return new q.Signal([
     [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
     [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
     [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
     ]);
+```
+### Creating a signal within a callback function
+There are cases when your `run()` function may have to use a callback, and so
+cannot directly pass a `Signal` object as its return. In this case, use the
+`Send()` function, e.g.:
+
+```
+  q.Send(new q.Signal([[new q.Point('#FF0000)]]));
 ```
 
 ## Point
@@ -85,4 +93,3 @@ You can also specify an effect if you wish:
 ```
   let point = new q.Point('#FF0000', q.Effects.BLINK);
 ```
-

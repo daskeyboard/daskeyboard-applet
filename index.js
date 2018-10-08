@@ -4,14 +4,18 @@ const signalHeaders = {
   "Content-Type": "application/json"
 }
 
+const config = readConfig();
+const qMeta = config.QMETA || {};
+const extensionId = qMeta.extensionId;
+console.log("extensionId: ", qMeta.extensionId);
 
 /**
  * The base class for apps that run on the Q Desktop
  */
 class QDesktopApp {
   constructor() {
-    this.config = readConfig();
-    this.extensionId = this.config.QMETA.extensionId;
+    this.config = config;
+    this.extensionId = extensionId;
 
     process.on('SIGINT', (message) => {
       this.shutdown();
@@ -28,6 +32,8 @@ class QDesktopApp {
    * but may do other setup items later.
    */
   start() {
+    this.poll();
+
     setInterval(() => {
       this.poll();
 
@@ -50,7 +56,6 @@ class QDesktopApp {
           this.pollingBusy = false;
 
           if (signal) {
-            signal.extensionId = this.extensionId;
             sendLocal(signal);
           }
         });
@@ -100,7 +105,7 @@ class QDesktopSignal {
    */
   constructor(points) {
     this.points = points;
-    this.extensionId = null;
+    this.extensionId = extensionId;
   }
 
 }
@@ -129,6 +134,8 @@ const signalEndpoint = backendUrl + '/api/1.0/signals';
  * @param {Signal} signal 
  */
 async function sendLocal(signal) {
+  console.log("Sending local signal: ", signal);
+
   return request.post({
     uri: signalEndpoint,
     headers: signalHeaders,
@@ -139,8 +146,8 @@ async function sendLocal(signal) {
   }).catch(function (err) {
     const error = err.error;
     if (error.code === 'ECONNREFUSED') {
-      console.error(`Error: failed to connect to ${signalEndpoint}, make sure`
-      + ` the Das Keyboard Q software  is running`);
+      console.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
+        ` the Das Keyboard Q software  is running`);
     } else {
       console.error('Error sending signal ', error);
     }
@@ -173,6 +180,7 @@ function readConfig() {
 module.exports = {
   DesktopApp: QDesktopApp,
   Point: QPoint,
+  Send: sendLocal,
   Signal: QDesktopSignal,
   Effects: Effects
 }
