@@ -1,20 +1,28 @@
 const request = require('request-promise');
+const utility = require('./lib/utility');
 
 const signalHeaders = {
   "Content-Type": "application/json"
 }
 
 const defaultPortInterval = 2000;
-const config = readConfig();
-const extensionId = config.extensionId;
-console.log("extensionId: ", config.extensionId);
+const rootConfig = Object.freeze(readConfig());
+console.log("rootConfig: " + JSON.stringify(rootConfig));
+
+const extensionId = rootConfig.extensionId;
+console.log("extensionId: ", rootConfig.extensionId);
+
+const appletConfig = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
+console.log("config: " + JSON.stringify(appletConfig));
+
+const geometry = rootConfig.geometry;
 
 /**
  * The base class for apps that run on the Q Desktop
  */
 class QDesktopApp {
   constructor() {
-    this.config = config;
+    this.config = appletConfig;
     this.extensionId = extensionId;
 
     process.on('SIGINT', (message) => {
@@ -107,7 +115,6 @@ class QDesktopSignal {
     this.points = points;
     this.extensionId = extensionId;
   }
-
 }
 
 
@@ -134,15 +141,15 @@ const signalEndpoint = backendUrl + '/api/2.0/signals';
  * @param {Signal} signal 
  */
 async function sendLocal(signal) {
-  const originX = 0;
-  const originY = 1;
+  const originX = geometry.origin.x;
+  const originY = geometry.origin.y;
 
   const actionValue = [];
 
-  const rows = signal.points;  
-  for (let y = 0; y<rows.length; y++) {
+  const rows = signal.points;
+  for (let y = 0; y < rows.length; y++) {
     const columns = rows[y];
-    for (let x = 0; x< columns.length; x++) {
+    for (let x = 0; x < columns.length; x++) {
       const point = columns[x];
       actionValue.push({
         zoneId: (originX + x) + ',' + (originY + y),
@@ -166,7 +173,7 @@ async function sendLocal(signal) {
     headers: signalHeaders,
     body: body,
     json: true
-  }).then(function (json) {      
+  }).then(function (json) {
     // no-op on successful completion
   }).catch(function (err) {
     const error = err.error;
