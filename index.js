@@ -6,9 +6,8 @@ const signalHeaders = {
 
 const defaultPortInterval = 2000;
 const config = readConfig();
-const qMeta = config.QMETA || {};
-const extensionId = qMeta.extensionId;
-console.log("extensionId: ", qMeta.extensionId);
+const extensionId = config.extensionId;
+console.log("extensionId: ", config.extensionId);
 
 /**
  * The base class for apps that run on the Q Desktop
