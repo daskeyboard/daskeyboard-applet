@@ -7,16 +7,12 @@ const signalHeaders = {
 
 const defaultPortInterval = 2000;
 const rootConfig = Object.freeze(readConfig());
-console.log("rootConfig: " + JSON.stringify(rootConfig));
 
 const extensionId = rootConfig.extensionId;
-console.log("extensionId: ", rootConfig.extensionId);
 
 const appletConfig = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
-console.log("config: " + JSON.stringify(appletConfig));
 
 const authorization = rootConfig.authorization || {};
-console.log("authorization: " + JSON.stringify(authorization));
 
 const geometry = rootConfig.geometry;
 
@@ -61,7 +57,6 @@ class QDesktopApp {
     if (this.pollingBusy) {
       console.log("Skipping run because we are still busy.");
     } else {
-      console.log("Running the applet...");
       this.pollingBusy = true;
       try {
         this.run().then((signal) => {
@@ -146,7 +141,6 @@ const signalEndpoint = backendUrl + '/api/2.0/signals';
  * @param {Signal} signal 
  */
 async function sendLocal(signal) {
-  console.log("I have signal:", JSON.stringify(signal));
   const originX = geometry.origin.x;
   const originY = geometry.origin.y;
 
@@ -157,7 +151,6 @@ async function sendLocal(signal) {
     const columns = rows[y];
     for (let x = 0; x < columns.length; x++) {
       const point = columns[x];
-      console.log("I have point: ", point);
       actionValue.push({
         zoneId: (originX + x) + ',' + (originY + y),
         effect: point.effect,
@@ -203,7 +196,6 @@ function readConfig() {
     try {
       let config = JSON.parse(process.argv[2]);
       Object.freeze(config);
-      console.log("Configuration:\n", JSON.stringify(config));
       return config;
     } catch (error) {
       console.error("Could not parse config as JSON: " + process.argv[2]);
