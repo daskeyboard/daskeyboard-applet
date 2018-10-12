@@ -128,21 +128,46 @@ const Effects = Object.freeze({
 });
 
 const backendUrl = 'http://localhost:27301';
-const signalEndpoint = backendUrl + '/api/1.0/signals';
+const signalEndpoint = backendUrl + '/api/2.0/signals';
 
 /**
  * Send a signal to the local Das Keyboard Q Service.
  * @param {Signal} signal 
  */
 async function sendLocal(signal) {
-  console.log("Sending local signal: ", signal);
+  const originX = 0;
+  const originY = 1;
+
+  const actionValue = [];
+
+  const rows = signal.points;  
+  for (let y = 0; y<rows.length; y++) {
+    const columns = rows[y];
+    for (let x = 0; x< columns.length; x++) {
+      const point = columns[x];
+      actionValue.push({
+        zoneId: (originX + x) + ',' + (originY + y),
+        effect: point.effect,
+        color: point.color
+      });
+    }
+  }
+
+  const body = {
+    action: "DRAW",
+    actionValue: JSON.stringify(actionValue),
+    pid: "Q_MATRIX",
+    message: "",
+    name: "CPU Usage",
+    isMuted: true
+  }
 
   return request.post({
     uri: signalEndpoint,
     headers: signalHeaders,
-    body: signal,
+    body: body,
     json: true
-  }).then(function (json) {
+  }).then(function (json) {      
     // no-op on successful completion
   }).catch(function (err) {
     const error = err.error;
