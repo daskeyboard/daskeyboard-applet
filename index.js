@@ -4,6 +4,7 @@ const signalHeaders = {
   "Content-Type": "application/json"
 }
 
+const defaultPortInterval = 2000;
 const config = readConfig();
 const qMeta = config.QMETA || {};
 const extensionId = qMeta.extensionId;
@@ -22,7 +23,7 @@ class QDesktopApp {
       process.exit();
     })
 
-    this.pollingInterval = 2000;
+    this.pollingInterval = defaultPortInterval;
     this.pollingBusy = false;
     this.errorState = null;
   }
