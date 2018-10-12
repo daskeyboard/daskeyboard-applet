@@ -1,5 +1,6 @@
 const request = require('request-promise');
 const utility = require('./lib/utility');
+const Storage = require('node-storage');
 
 const signalHeaders = {
   "Content-Type": "application/json"
@@ -16,6 +17,8 @@ const authorization = rootConfig.authorization || {};
 
 const geometry = rootConfig.geometry;
 
+const storageLocation = rootConfig.storageLocation;
+
 /**
  * The base class for apps that run on the Q Desktop
  */
@@ -24,6 +27,8 @@ class QDesktopApp {
     this.authorization = authorization;
     this.config = appletConfig;
     this.extensionId = extensionId;
+    this.store = new Storage(storageLocation);
+
 
     process.on('SIGINT', (message) => {
       this.shutdown();
