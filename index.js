@@ -25,10 +25,12 @@ const storageLocation = rootConfig.storageLocation;
 class QDesktopApp {
   constructor() {
     this.authorization = authorization;
-    this.config = appletConfig;
+    this.config = appletConfig || {};
     this.extensionId = extensionId;
     this.store = new Storage(storageLocation);
 
+    console.log("Constructing app with config: ", this.config);
+    console.log("Constructing app with geometry: ", geometry);
 
     process.on('SIGINT', (message) => {
       this.shutdown();
@@ -38,7 +40,54 @@ class QDesktopApp {
     this.pollingInterval = defaultPortInterval;
     this.pollingBusy = false;
     this.errorState = null;
+
+    process.on('message', (m) => this.handleMessage(m));
+    console.log("Constructor finished.");
   }
+
+  async handleMessage(m) {
+    if (m.startsWith('{')) {
+      const message = JSON.parse(m);
+      console.log("CHILD Received JSON message: ", message);
+
+      const type = message.type;
+      switch (type) {
+        case 'SELECTIONS':
+          {
+            console.log("CHILD Handling " + type);
+            this.selections(message.fieldName).then(selections => {
+              console.log("CHILD returned selections.");
+              const response = {
+                type: 'SELECTIONS',
+                selections: selections
+              }
+              process.send(JSON.stringify(response));
+            });
+            break;
+          }
+        default:
+          {
+            console.error("Don't know how to handle JSON message of type: '" + type + "'");
+          }
+      }
+    } else {
+      switch (m) {
+        case 'START':
+          {
+            console.log("Got START");
+            this.start();
+            break;
+          }
+        default:
+          {
+            console.error("Don't know what to do with message: '" + m + "'");
+          }
+      }
+    }
+  }
+
+
+
 
   /**
    * The entry point for the app. Currently only launches the polling function,
@@ -95,6 +144,17 @@ class QDesktopApp {
    * take place before shutting down.
    */
   shutdown() {}
+
+  /**
+   * Given an (optional) fieldName, return the valid selections for that field
+   * name. This is used to generate a UI to allow the user to configure the
+   * applet.
+   * @param {string} fieldName 
+   * @returns {Object} an array of [key, value] pairs
+   */
+  async selections(fieldName) {
+
+  }
 }
 
 
@@ -146,49 +206,56 @@ const signalEndpoint = backendUrl + '/api/2.0/signals';
  * @param {Signal} signal 
  */
 async function sendLocal(signal) {
-  const originX = geometry.origin.x;
-  const originY = geometry.origin.y;
+  if (!geometry || !geometry.origin) {
+    console.error("Geometry is not properly defined:", geometry);
+  } else {
+    const originX = geometry.origin.x || 0;
+    const originY = geometry.origin.y || 0;
 
-  const actionValue = [];
+    const actionValue = [];
 
-  const rows = signal.points;
-  for (let y = 0; y < rows.length; y++) {
-    const columns = rows[y];
-    for (let x = 0; x < columns.length; x++) {
-      const point = columns[x];
-      actionValue.push({
-        zoneId: (originX + x) + ',' + (originY + y),
-        effect: point.effect,
-        color: point.color
-      });
+    const rows = signal.points;
+    for (let y = 0; y < rows.length; y++) {
+      const columns = rows[y];
+      for (let x = 0; x < columns.length; x++) {
+        const point = columns[x];
+        actionValue.push({
+          zoneId: (originX + x) + ',' + (originY + y),
+          effect: point.effect,
+          color: point.color
+        });
+      }
     }
-  }
 
-  const body = {
-    action: "DRAW",
-    actionValue: JSON.stringify(actionValue),
-    pid: "Q_MATRIX",
-    message: "",
-    name: "CPU Usage",
-    isMuted: true
-  }
-
-  return request.post({
-    uri: signalEndpoint,
-    headers: signalHeaders,
-    body: body,
-    json: true
-  }).then(function (json) {
-    // no-op on successful completion
-  }).catch(function (err) {
-    const error = err.error;
-    if (error.code === 'ECONNREFUSED') {
-      console.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
-        ` the Das Keyboard Q software  is running`);
-    } else {
-      console.error('Error sending signal ', error);
+    const body = {
+      action: "DRAW",
+      actionValue: JSON.stringify(actionValue),
+      pid: "Q_MATRIX",
+      message: "",
+      name: "CPU Usage",
+      isMuted: true
     }
-  });
+
+    //console.log("Posting to local service:", JSON.stringify(body));
+
+    return request.post({
+      uri: signalEndpoint,
+      headers: signalHeaders,
+      body: body,
+      json: true
+    }).then(function (json) {
+      // no-op on successful completion
+    }).catch(function (err) {
+      const error = err.error;
+      if (error.code === 'ECONNREFUSED') {
+        console.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
+          ` the Das Keyboard Q software  is running`);
+      } else {
+        console.error('Error sending signal ', error);
+      }
+    });
+
+  }
 }
 
 
