@@ -175,9 +175,11 @@ class QDesktopSignal {
   /**
    * 
    * @param {QPoint[][]} points A 2D array of QPoints expressing the signal
+   * @param {*} options A JSON list of options
    */
-  constructor(points) {
+  constructor(points, options) {
     this.points = points;
+    this.options = options || {}
     this.extensionId = extensionId;
   }
 }
@@ -231,9 +233,10 @@ async function sendLocal(signal) {
       action: "DRAW",
       actionValue: JSON.stringify(actionValue),
       pid: "Q_MATRIX",
-      message: "",
-      name: "CPU Usage",
-      isMuted: true
+      message: signal.options.message || "",
+      name: signal.options.name || "Q Desktop Signal",
+      isMuted: !signal.options.message,
+      clientName: extensionId
     }
 
     //console.log("Posting to local service:", JSON.stringify(body));
