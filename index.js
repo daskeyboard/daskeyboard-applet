@@ -7,17 +7,49 @@ const signalHeaders = {
 }
 
 const defaultPortInterval = 2000;
-const rootConfig = Object.freeze(readConfig());
 
-const extensionId = rootConfig.extensionId;
+/**
+ * The root of all configuration for this extension
+ */
+var rootConfig;
 
-const appletConfig = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
+/**
+ * The instance ID of the extension
+ */
+var extensionId;
 
-const authorization = rootConfig.authorization || {};
+/**
+ * The configuration of the applet itself
+ */
+var appletConfig;
 
-const geometry = rootConfig.geometry;
+/**
+ * The extension's authorization info
+ */
+var authorization;
 
-const storageLocation = rootConfig.storageLocation;
+/**
+ * The extension's geometry
+ */
+var geometry;
+
+/**
+ * The location of the extension's local storage
+ */
+var storageLocation;
+
+applyConfig();
+
+
+function applyConfig(rootConfig) {
+  rootConfig = Object.freeze(rootConfig ? rootConfig : readConfig());
+  extensionId = rootConfig.extensionId;
+  appletConfig = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
+  authorization = rootConfig.authorization || {};
+  geometry = rootConfig.geometry;
+  storageLocation = rootConfig.storageLocation;
+}
+
 
 /**
  * The base class for apps that run on the Q Desktop
@@ -51,15 +83,21 @@ class QDesktopApp {
       console.log("CHILD Received JSON message: ", message);
 
       const type = message.type;
+      const data = message.data;
       switch (type) {
+        case 'CONFIGURE': {
+          console.log("Reconfiguring: " +  JSON.stringify(data));
+          applyConfig(Object.freeze(data));
+          break;
+        }
         case 'SELECTIONS':
           {
             console.log("CHILD Handling " + type);
-            this.selections(message.fieldName).then(selections => {
+            this.selections(data.fieldName).then(selections => {
               console.log("CHILD returned selections.");
               const response = {
                 type: 'SELECTIONS',
-                selections: selections
+                data: selections
               }
               process.send(JSON.stringify(response));
             });
