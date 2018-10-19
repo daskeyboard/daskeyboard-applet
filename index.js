@@ -219,6 +219,10 @@ class QDesktopSignal {
     this.points = points;
     this.options = options || {}
     this.extensionId = extensionId;
+
+    if (null === this.options.isMuted) {
+      this.options.isMuted = true;
+    }
   }
 }
 
@@ -273,7 +277,7 @@ async function sendLocal(signal) {
       pid: "Q_MATRIX",
       message: signal.options.message || "",
       name: signal.options.name || "Q Desktop Signal",
-      isMuted: !signal.options.message,
+      isMuted: signal.options.isMuted,
       clientName: extensionId
     }
 
