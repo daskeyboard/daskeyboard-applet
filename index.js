@@ -258,6 +258,8 @@ async function sendLocal(signal) {
 
     const actionValue = [];
 
+    console.log("Signal is: " + JSON.stringify(signal));
+
     const rows = signal.points;
     for (let y = 0; y < rows.length; y++) {
       const columns = rows[y];
@@ -281,7 +283,6 @@ async function sendLocal(signal) {
       clientName: extensionId
     }
 
-    // console.log("Signal is: " + JSON.stringify(signal));
     // console.log("Posting to local service:", JSON.stringify(body));
 
     return request.post({
