@@ -273,9 +273,9 @@ async function sendLocal(signal) {
       action: "DRAW",
       actionValue: JSON.stringify(actionValue),
       pid: "Q_MATRIX",
-      message: signal.options.message || "",
-      name: signal.options.name || "Q Desktop Signal",
-      isMuted: signal.options.isMuted,
+      message: signal.message,
+      name: signal.name,
+      isMuted: signal.isMuted,
       clientName: extensionId
     }
 
