@@ -26,5 +26,10 @@
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
     "node-storage": "^0.0.7"
+  },
+  "devDependencies": {
+    "eslint": "^5.7.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
   }
 }
