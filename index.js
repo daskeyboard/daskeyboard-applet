@@ -217,6 +217,7 @@ class QDesktopSignal {
    */
   constructor(points, options) {
     this.points = points;
+    console.log("OPTIONS OPTIONS OPTIONS: " + JSON.stringify(options));
     this.options = options || {}
     this.extensionId = extensionId;
   }
