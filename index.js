@@ -206,7 +206,20 @@ class QDesktopApp {
   }
 
   async handleFlash() {
+    const width = this.geometry.width || 1;
+    const height = this.geometry.height || 1;
+
+    const row = [];
+    for (let i = 0; i < width; i += 1) {
+      row.push(new QPoint('#000000'));
+    }
+    const points = [];
+    for (let i = 0; i < height; i += 1) {
+      points.push(row);
+    }
+
     const signal = new QDesktopSignal({
+      points: points,
       action: 'FLASH',
       isMuted: false,
     });
@@ -238,6 +251,7 @@ class QDesktopSignal {
    */
   constructor({points = [[]], name = 'Q Desktop Signal', message = '', isMuted = true, action = 'DRAW'}) {
     this.points = points;
+    this.action = action;
     this.name = name;
     this.message = message;
     this.isMuted = isMuted;    
