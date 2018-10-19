@@ -221,8 +221,6 @@ class QDesktopSignal {
     this.message = message;
     this.isMuted = isMuted;    
     this.extensionId = extensionId;
-
-    console.log("CONSTRUCTOR: " + JSON.stringify(this));
   }
 }
 
