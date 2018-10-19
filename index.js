@@ -88,6 +88,7 @@ class QDesktopApp {
         case 'CONFIGURE': {
           console.log("Reconfiguring: " +  JSON.stringify(data));
           applyConfig(Object.freeze(data));
+          this.reconfigure();
           break;
         }
         case 'SELECTIONS':
@@ -116,6 +117,12 @@ class QDesktopApp {
             this.start();
             break;
           }
+        case 'FLASH': {
+          console.log("Got FLASH");
+          this.handleFlash();
+          break;
+        }
+        
         default:
           {
             console.error("Don't know what to do with message: '" + m + "'");
@@ -123,7 +130,6 @@ class QDesktopApp {
       }
     }
   }
-
 
 
 
@@ -139,7 +145,6 @@ class QDesktopApp {
 
     }, this.pollingInterval);
   }
-
 
   /**
    * Schedules the run() function at regular intervals. Currently set to a 
@@ -169,6 +174,12 @@ class QDesktopApp {
   }
 
   /**
+   * Implement this function if you need to reconfigure the instance or other variables
+   * based on a new applet configuration
+   */
+  reconfigure() {}
+
+  /**
    * This method is called once each polling interval. This is where most
    * of the work should be done.
    */
@@ -193,6 +204,13 @@ class QDesktopApp {
   async selections(fieldName) {
 
   }
+
+  async handleFlash() {
+    sendLocal(new QDesktopSignal({
+      action: 'FLASH',
+      isMuted: false,
+    }))
+  }
 }
 
 
@@ -215,7 +233,7 @@ class QDesktopSignal {
    * @param {QPoint[][]} points A 2D array of QPoints expressing the signal
    * @param {*} options A JSON list of options
    */
-  constructor({points, name = 'Q Desktop Signal', message = '', isMuted = true}) {
+  constructor({points = [[]], name = 'Q Desktop Signal', message = '', isMuted = true, action = 'DRAW'}) {
     this.points = points;
     this.name = name;
     this.message = message;
@@ -272,7 +290,7 @@ async function sendLocal(signal) {
     }
 
     const body = {
-      action: "DRAW",
+      action: signal.action,
       actionValue: JSON.stringify(actionValue),
       pid: "Q_MATRIX",
       message: signal.message,
