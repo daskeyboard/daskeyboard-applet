@@ -117,13 +117,13 @@ async function sendLocal(signal) {
       headers: signalHeaders,
       body,
       json: true,
-    }).then((json) => {
+    }).then(() => {
       // no-op on successful completion
     }).catch((err) => {
-      const error = err.error;
+      const { error } = err;
       if (error.code === 'ECONNREFUSED') {
-        console.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
-          ` the Das Keyboard Q software  is running`);
+        console.error(`Error: failed to connect to ${signalEndpoint}, make sure`
+          + ' the Das Keyboard Q software  is running');
       } else {
         console.error('Error sending signal ', error);
       }
