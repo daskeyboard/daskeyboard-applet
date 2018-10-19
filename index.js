@@ -221,8 +221,6 @@ class QDesktopSignal {
     this.message = message;
     this.isMuted = isMuted;    
     this.extensionId = extensionId;
-
-    console.log('CONSTRUCTOR: ' + JSON.stringify(this));
   }
 }
 
@@ -258,7 +256,7 @@ async function sendLocal(signal) {
 
     const actionValue = [];
 
-    console.log("Signal is: " + JSON.stringify(signal));
+    //console.log("Signal is: " + JSON.stringify(signal));
 
     const rows = signal.points;
     for (let y = 0; y < rows.length; y++) {
