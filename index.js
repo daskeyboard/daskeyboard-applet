@@ -215,14 +215,14 @@ class QDesktopSignal {
    * @param {QPoint[][]} points A 2D array of QPoints expressing the signal
    * @param {*} options A JSON list of options
    */
-  constructor(points, options) {
+  constructor({points, name = 'Q Desktop Signal', message = '', isMuted = true}) {
     this.points = points;
-    this.options = options || {}
+    this.name = name;
+    this.message = message;
+    this.isMuted = isMuted;    
     this.extensionId = extensionId;
 
-    if (null === this.options.isMuted) {
-      this.options.isMuted = true;
-    }
+    console.log("CONSTRUCTOR: " + JSON.stringify(this));
   }
 }
 
