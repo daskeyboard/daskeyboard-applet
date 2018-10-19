@@ -217,7 +217,6 @@ class QDesktopSignal {
    */
   constructor(points, options) {
     this.points = points;
-    console.log("OPTIONS OPTIONS OPTIONS: " + JSON.stringify(options));
     this.options = options || {}
     this.extensionId = extensionId;
   }
@@ -278,8 +277,8 @@ async function sendLocal(signal) {
       clientName: extensionId
     }
 
-    console.log("Signal is: " + JSON.stringify(signal));
-    console.log("Posting to local service:", JSON.stringify(body));
+    // console.log("Signal is: " + JSON.stringify(signal));
+    // console.log("Posting to local service:", JSON.stringify(body));
 
     return request.post({
       uri: signalEndpoint,
