@@ -206,10 +206,13 @@ class QDesktopApp {
   }
 
   async handleFlash() {
-    sendLocal(new QDesktopSignal({
+    const signal = new QDesktopSignal({
       action: 'FLASH',
       isMuted: false,
-    }))
+    });
+
+    console.log("Flashing with signal: " + JSON.stringify(signal));
+    return sendLocal(signal);
   }
 }
 
