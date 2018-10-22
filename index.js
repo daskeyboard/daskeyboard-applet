@@ -45,8 +45,8 @@ function applyConfig(rootConfig) {
   rootConfig = Object.freeze(rootConfig ? rootConfig : readConfig());
   extensionId = rootConfig.extensionId;
   appletConfig = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
-  authorization = rootConfig.authorization || {};
-  geometry = rootConfig.geometry;
+  authorization = Object.freeze(rootConfig.authorization || {});
+  geometry = Object.freeze(rootConfig.geometry || {});
   storageLocation = rootConfig.storageLocation;
 }
 
@@ -220,8 +220,8 @@ class QDesktopApp {
   }
 
   async handleFlash() {
-    const width = this.geometry.width || 1;
-    const height = this.geometry.height || 1;
+    const width = geometry.width || 1;
+    const height = geometry.height || 1;
 
     const row = [];
     for (let i = 0; i < width; i += 1) {
