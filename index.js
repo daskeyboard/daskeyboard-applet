@@ -6,7 +6,7 @@ const signalHeaders = {
   "Content-Type": "application/json"
 }
 
-const defaultPortInterval = 2000;
+const defaultPollingInterval = 60000;
 var rootConfig;
 var extensionId;
 
@@ -24,7 +24,7 @@ class QDesktopApp {
       process.exit();
     })
 
-    this.pollingInterval = defaultPortInterval;
+    this.pollingInterval = defaultPollingInterval;
     this.pollingBusy = false;
     this.errorState = null;
 
@@ -116,6 +116,65 @@ class QDesktopApp {
   }
 
 
+  /**
+   * Send a signal to the local Das Keyboard Q Service.
+   * @param {Signal} signal 
+   */
+  async sendLocal(signal) {
+    if (!this.geometry || !this.geometry.origin) {
+      console.error("Geometry is not properly defined:", this.geometry);
+    } else {
+      const originX = this.geometry.origin.x || 0;
+      const originY = this.geometry.origin.y || 0;
+
+      const actionValue = [];
+
+      //console.log("Signal is: " + JSON.stringify(signal));
+
+      const rows = signal.points;
+      for (let y = 0; y < rows.length; y++) {
+        const columns = rows[y];
+        for (let x = 0; x < columns.length; x++) {
+          const point = columns[x];
+          actionValue.push({
+            zoneId: (originX + x) + ',' + (originY + y),
+            effect: point.effect,
+            color: point.color
+          });
+        }
+      }
+
+      const body = {
+        action: signal.action,
+        actionValue: JSON.stringify(actionValue),
+        pid: "Q_MATRIX",
+        message: signal.message,
+        name: signal.name,
+        isMuted: signal.isMuted,
+        clientName: this.extensionId
+      }
+
+      // console.log("Posting to local service:", JSON.stringify(body));
+
+      return request.post({
+        uri: signalEndpoint,
+        headers: signalHeaders,
+        body: body,
+        json: true
+      }).then(function (json) {
+        // no-op on successful completion
+      }).catch(function (err) {
+        const error = err.error;
+        if (error.code === 'ECONNREFUSED') {
+          console.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
+            ` the Das Keyboard Q software  is running`);
+        } else {
+          console.error('Error sending signal ', error);
+        }
+      });
+    }
+  }
+
 
   /**
    * The entry point for the app. Currently only launches the polling function,
@@ -147,7 +206,7 @@ class QDesktopApp {
         this.pollingBusy = false;
 
         if (signal) {
-          sendLocal(signal);
+          this.sendLocal(signal);
         }
       }).catch((error) => {
         this.errorState = error;
@@ -210,7 +269,7 @@ class QDesktopApp {
     });
 
     console.log("Flashing with signal: " + JSON.stringify(signal));
-    return sendLocal(signal);
+    return this.sendLocal(signal);
   }
 }
 
@@ -271,66 +330,6 @@ const Effects = Object.freeze({
 const backendUrl = 'http://localhost:27301';
 const signalEndpoint = backendUrl + '/api/2.0/signals';
 
-/**
- * Send a signal to the local Das Keyboard Q Service.
- * @param {Signal} signal 
- */
-async function sendLocal(signal) {
-  if (!geometry || !geometry.origin) {
-    console.error("Geometry is not properly defined:", geometry);
-  } else {
-    const originX = geometry.origin.x || 0;
-    const originY = geometry.origin.y || 0;
-
-    const actionValue = [];
-
-    //console.log("Signal is: " + JSON.stringify(signal));
-
-    const rows = signal.points;
-    for (let y = 0; y < rows.length; y++) {
-      const columns = rows[y];
-      for (let x = 0; x < columns.length; x++) {
-        const point = columns[x];
-        actionValue.push({
-          zoneId: (originX + x) + ',' + (originY + y),
-          effect: point.effect,
-          color: point.color
-        });
-      }
-    }
-
-    const body = {
-      action: signal.action,
-      actionValue: JSON.stringify(actionValue),
-      pid: "Q_MATRIX",
-      message: signal.message,
-      name: signal.name,
-      isMuted: signal.isMuted,
-      clientName: extensionId
-    }
-
-    // console.log("Posting to local service:", JSON.stringify(body));
-
-    return request.post({
-      uri: signalEndpoint,
-      headers: signalHeaders,
-      body: body,
-      json: true
-    }).then(function (json) {
-      // no-op on successful completion
-    }).catch(function (err) {
-      const error = err.error;
-      if (error.code === 'ECONNREFUSED') {
-        console.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
-          ` the Das Keyboard Q software  is running`);
-      } else {
-        console.error('Error sending signal ', error);
-      }
-    });
-
-  }
-}
-
 
 /**
  * Read the configuration from command line arguments. The first command line 
@@ -359,7 +358,6 @@ function readConfig() {
 module.exports = {
   DesktopApp: QDesktopApp,
   Point: QPoint,
-  Send: sendLocal,
   Signal: QDesktopSignal,
   Effects: Effects
 }
