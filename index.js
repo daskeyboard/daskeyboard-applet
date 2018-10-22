@@ -60,6 +60,7 @@ class QDesktopApp {
     this.config = appletConfig || {};
     this.extensionId = extensionId;
     this.store = new Storage(storageLocation);
+    this.paused = false;
 
     console.log("Constructing app with config: ", this.config);
     console.log("Constructing app with geometry: ", geometry);
@@ -111,17 +112,29 @@ class QDesktopApp {
       }
     } else {
       switch (m) {
-        case 'START':
-          {
-            console.log("Got START");
-            this.start();
-            break;
-          }
         case 'FLASH': {
           console.log("Got FLASH");
           this.handleFlash();
           break;
         }
+
+        case 'PAUSE': {
+          console.log("Got PAUSE");
+          this.paused = true;
+          break;
+        }
+
+        case 'START':
+          {
+            console.log("Got START");
+            if (this.paused) {
+              this.paused = false;
+              this.poll();
+            } else {
+              this.start();
+            }
+            break;
+          }
         
         default:
           {
@@ -138,6 +151,7 @@ class QDesktopApp {
    * but may do other setup items later.
    */
   start() {
+    this.paused = false;
     this.poll();
 
     setInterval(() => {
@@ -151,11 +165,12 @@ class QDesktopApp {
    * constant value, but may become dynamic in the future.
    */
   poll() {
-    if (this.pollingBusy) {
+    if (this.paused) {
+      // no-op, we are paused
+    } else if (this.pollingBusy) {
       console.log("Skipping run because we are still busy.");
     } else {
       this.pollingBusy = true;
-      try {
         this.run().then((signal) => {
           this.errorState = null;
           this.pollingBusy = false;
@@ -163,13 +178,12 @@ class QDesktopApp {
           if (signal) {
             sendLocal(signal);
           }
-        });
-      } catch (error) {
+        }).catch ((error) => {
         this.errorState = error;
         console.error(
           "Applet encountered an uncaught error in its main loop", error);
         this.pollingBusy = false;
-      }
+      });
     }
   }
 
