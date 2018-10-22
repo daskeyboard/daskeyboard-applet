@@ -75,10 +75,10 @@ To light up a rectangular region, send multiple rows of points, e.g:
 ### Creating a signal within a callback function
 There are cases when your `run()` function may have to use a callback, and so
 cannot directly pass a `Signal` object as its return. In this case, use the
-`Send()` function, e.g.:
+`sendLocal()` function, e.g.:
 
 ```
-  q.Send(new q.Signal([[new q.Point('#FF0000)]]));
+  this.sendLocal(new q.Signal([[new q.Point('#FF0000)]]));
 ```
 
 ## Point
