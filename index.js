@@ -59,7 +59,7 @@ class QDesktopApp {
     this.authorization = authorization;
     this.config = appletConfig || {};
     this.extensionId = extensionId;
-    this.store = new Storage(storageLocation);
+    this.store = storageLocation ? new Storage(storageLocation) : null;
     this.paused = false;
 
     console.log("Constructing app with config: ", this.config);
@@ -368,7 +368,10 @@ function readConfig() {
       process.exit(1);
     }
   } else {
-    return Object.freeze({});
+    return Object.freeze({
+      applet: {},
+      defaults: {}
+    });
   }
 }
 
