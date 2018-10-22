@@ -7,48 +7,8 @@ const signalHeaders = {
 }
 
 const defaultPortInterval = 2000;
-
-/**
- * The root of all configuration for this extension
- */
 var rootConfig;
-
-/**
- * The instance ID of the extension
- */
 var extensionId;
-
-/**
- * The configuration of the applet itself
- */
-var appletConfig;
-
-/**
- * The extension's authorization info
- */
-var authorization;
-
-/**
- * The extension's geometry
- */
-var geometry;
-
-/**
- * The location of the extension's local storage
- */
-var storageLocation;
-
-applyConfig();
-
-
-function applyConfig(rootConfig) {
-  rootConfig = Object.freeze(rootConfig ? rootConfig : readConfig());
-  extensionId = rootConfig.extensionId;
-  appletConfig = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
-  authorization = Object.freeze(rootConfig.authorization || {});
-  geometry = Object.freeze(rootConfig.geometry || {});
-  storageLocation = rootConfig.storageLocation;
-}
 
 
 /**
@@ -56,14 +16,8 @@ function applyConfig(rootConfig) {
  */
 class QDesktopApp {
   constructor() {
-    this.authorization = authorization;
-    this.config = appletConfig || {};
-    this.extensionId = extensionId;
-    this.store = storageLocation ? new Storage(storageLocation) : null;
     this.paused = false;
-
-    console.log("Constructing app with config: ", this.config);
-    console.log("Constructing app with geometry: ", geometry);
+    this.applyConfig();
 
     process.on('SIGINT', (message) => {
       this.shutdown();
@@ -78,6 +32,20 @@ class QDesktopApp {
     console.log("Constructor finished.");
   }
 
+
+  applyConfig(config) {
+    rootConfig = Object.freeze(config ? config : readConfig());
+    console.log("Constructing app with ROOT config: ", rootConfig);
+
+    this.extensionId = extensionId = rootConfig.extensionId;
+    this.config = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
+    this.authorization = Object.freeze(rootConfig.authorization || {});
+    this.geometry = Object.freeze(rootConfig.geometry || {});
+    
+    let storageLocation = rootConfig.storageLocation;
+    this.store = storageLocation ? new Storage(storageLocation) : null;
+  }
+
   async handleMessage(m) {
     if (m.startsWith('{')) {
       const message = JSON.parse(m);
@@ -86,12 +54,13 @@ class QDesktopApp {
       const type = message.type;
       const data = message.data;
       switch (type) {
-        case 'CONFIGURE': {
-          console.log("Reconfiguring: " +  JSON.stringify(data));
-          applyConfig(Object.freeze(data));
-          this.reconfigure();
-          break;
-        }
+        case 'CONFIGURE':
+          {
+            console.log("Reconfiguring: " + JSON.stringify(data));
+            applyConfig(Object.freeze(data));
+            this.reconfigure();
+            break;
+          }
         case 'SELECTIONS':
           {
             console.log("CHILD Handling " + type);
@@ -112,17 +81,19 @@ class QDesktopApp {
       }
     } else {
       switch (m) {
-        case 'FLASH': {
-          console.log("Got FLASH");
-          this.handleFlash();
-          break;
-        }
+        case 'FLASH':
+          {
+            console.log("Got FLASH");
+            this.handleFlash();
+            break;
+          }
 
-        case 'PAUSE': {
-          console.log("Got PAUSE");
-          this.paused = true;
-          break;
-        }
+        case 'PAUSE':
+          {
+            console.log("Got PAUSE");
+            this.paused = true;
+            break;
+          }
 
         case 'START':
           {
@@ -135,7 +106,7 @@ class QDesktopApp {
             }
             break;
           }
-        
+
         default:
           {
             console.error("Don't know what to do with message: '" + m + "'");
@@ -171,14 +142,14 @@ class QDesktopApp {
       console.log("Skipping run because we are still busy.");
     } else {
       this.pollingBusy = true;
-        this.run().then((signal) => {
-          this.errorState = null;
-          this.pollingBusy = false;
+      this.run().then((signal) => {
+        this.errorState = null;
+        this.pollingBusy = false;
 
-          if (signal) {
-            sendLocal(signal);
-          }
-        }).catch ((error) => {
+        if (signal) {
+          sendLocal(signal);
+        }
+      }).catch((error) => {
         this.errorState = error;
         console.error(
           "Applet encountered an uncaught error in its main loop", error);
@@ -263,12 +234,20 @@ class QDesktopSignal {
    * @param {QPoint[][]} points A 2D array of QPoints expressing the signal
    * @param {*} options A JSON list of options
    */
-  constructor({points = [[]], name = 'Q Desktop Signal', message = '', isMuted = true, action = 'DRAW'}) {
+  constructor({
+    points = [
+      []
+    ],
+    name = 'Q Desktop Signal',
+    message = '',
+    isMuted = true,
+    action = 'DRAW'
+  }) {
     this.points = points;
     this.action = action;
     this.name = name;
     this.message = message;
-    this.isMuted = isMuted;    
+    this.isMuted = isMuted;
     this.extensionId = extensionId;
   }
 }
