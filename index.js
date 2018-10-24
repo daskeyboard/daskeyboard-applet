@@ -250,8 +250,8 @@ class QDesktopApp {
   }
 
   async handleFlash() {
-    const width = geometry.width || 1;
-    const height = geometry.height || 1;
+    const width = this.geometry.width || 1;
+    const height = this.geometry.height || 1;
 
     const row = [];
     for (let i = 0; i < width; i += 1) {
