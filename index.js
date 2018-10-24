@@ -57,7 +57,7 @@ class QDesktopApp {
         case 'CONFIGURE':
           {
             console.log("Reconfiguring: " + JSON.stringify(data));
-            applyConfig(Object.freeze(data));
+            this.applyConfig(Object.freeze(data));
             this.reconfigure();
             break;
           }
