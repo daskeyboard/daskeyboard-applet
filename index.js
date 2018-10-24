@@ -20,7 +20,9 @@ class QDesktopApp {
     this.applyConfig();
 
     process.on('SIGINT', (message) => {
+      console.log("Got SIGINT, handling shutdown...");
       this.shutdown();
+      console.log("Exiting the process.");
       process.exit();
     })
 
