@@ -81,11 +81,13 @@ class QDesktopApp {
           {
             console.log("Reconfiguring: " + JSON.stringify(data));
             this.processConfig(Object.freeze(data)).then((result) => {
+              console.log("Configuration was successful: ", result);
               process.send(JSON.stringify({
                 type: 'CONFIGURATION_RESULT',
                 data: result
               }));
             }).catch((error) => {
+              console.error("Configuration had error: ", error);
               process.send(JSON.stringify({
                 type: 'CONFIGURATION_RESULT',
                 error: error
