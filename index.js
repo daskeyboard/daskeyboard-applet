@@ -17,7 +17,6 @@ var extensionId;
 class QDesktopApp {
   constructor() {
     this.paused = false;
-    this.applyConfig();
 
     process.on('SIGINT', (message) => {
       console.log("Got SIGINT, handling shutdown...");
@@ -31,11 +30,18 @@ class QDesktopApp {
     this.errorState = null;
 
     process.on('message', (m) => this.handleMessage(m));
+
+    this.processConfig();
+
     console.log("Constructor finished.");
   }
 
 
-  applyConfig(config) {
+  /**
+   * Process the config JSON, placing the relevant parts where they belong
+   * @param {*} config 
+   */
+  async processConfig(config) {
     rootConfig = Object.freeze(config ? config : readConfig());
     console.log("Constructing app with ROOT config: ", rootConfig);
 
@@ -43,10 +49,19 @@ class QDesktopApp {
     this.config = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
     this.authorization = Object.freeze(rootConfig.authorization || {});
     this.geometry = Object.freeze(rootConfig.geometry || {});
-    
+
     let storageLocation = rootConfig.storageLocation;
     this.store = storageLocation ? new Storage(storageLocation) : null;
+
+    return this.applyConfig();
   }
+
+  /**
+   * Postprocess the configuration for internal needs of the app
+   */
+  async applyConfig() {
+  }
+
 
   async handleMessage(m) {
     if (m.startsWith('{')) {
@@ -59,7 +74,12 @@ class QDesktopApp {
         case 'CONFIGURE':
           {
             console.log("Reconfiguring: " + JSON.stringify(data));
-            this.applyConfig(Object.freeze(data));
+            this.processConfig(Object.freeze(data)).then((result) => {
+              process.send(JSON.stringify({
+                type: 'CONFIGURATION_RESULT',
+                data: result
+              }));
+            });
             break;
           }
         case 'SELECTIONS':
@@ -235,22 +255,13 @@ class QDesktopApp {
   shutdown() {}
 
   /**
-   * Given an (optional) fieldName, return the valid selections for that field
+   * Given an (optional) fieldName, return the valid options for that field
    * name. This is used to generate a UI to allow the user to configure the
    * applet. If the applet only has one option, you can ignore the fieldName.
    * @param {string} fieldName 
-   * @returns {Object} an array of [key, value] pairs
+   * @returns {Object} an array of [{id, value} objects]
    */
   async options(fieldName) {    
-  }
-
-  /**
-   * An alias for options(fieldName)
-   * @deprecated
-   * @param {string} fieldName 
-   */
-  async selections(fieldName) {
-    return this.options(fieldName);
   }
 
   async handleFlash() {
