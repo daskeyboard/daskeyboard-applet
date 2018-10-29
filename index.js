@@ -31,8 +31,11 @@ class QDesktopApp {
 
     process.on('message', (m) => this.handleMessage(m));
 
-    this.processConfig();
-
+    try {
+      this.processConfig();
+    } catch (error) {
+      throw new Error("Error while processing config.", error);
+    }
     console.log("Constructor finished.");
   }
 
