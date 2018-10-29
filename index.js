@@ -85,7 +85,7 @@ class QDesktopApp {
               console.log("Configuration was successful: ", result);
               result = JSON.stringify({
                 type: 'CONFIGURATION_RESULT',
-                data: result
+                data: result + ''
               });
               console.log("Sending result: ", result);
               process.send(result);
@@ -93,7 +93,7 @@ class QDesktopApp {
               console.error("Configuration had error: ", error);
               result = JSON.stringify({
                 type: 'CONFIGURATION_RESULT',
-                error: error
+                error: error + ''
               });
               console.log("Sending result: ", result);
               process.send(result)
