@@ -85,6 +85,11 @@ class QDesktopApp {
                 type: 'CONFIGURATION_RESULT',
                 data: result
               }));
+            }).catch((error) => {
+              process.send(JSON.stringify({
+                type: 'CONFIGURATION_RESULT',
+                error: error
+              }))
             });
             break;
           }
