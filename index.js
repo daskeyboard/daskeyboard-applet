@@ -64,9 +64,12 @@ class QDesktopApp {
   }
 
   /**
-   * Postprocess the configuration for internal needs of the app
+   * Postprocess the configuration for internal needs of the app. This must
+   * return a truthy value or throw an error.
    */
-  async applyConfig() {}
+  async applyConfig() {
+    return true;
+  }
 
 
   async handleMessage(m) {
