@@ -58,7 +58,7 @@ class QDesktopApp {
 
     try {
       return this.applyConfig();
-    } catch(error) {
+    } catch (error) {
       throw new Error("Error while running applyConfig() against instance", error);
     }
   }
@@ -82,16 +82,20 @@ class QDesktopApp {
             console.log("Reconfiguring: " + JSON.stringify(data));
             this.processConfig(Object.freeze(data)).then((result) => {
               console.log("Configuration was successful: ", result);
-              process.send(JSON.stringify({
+              const result = JSON.stringify({
                 type: 'CONFIGURATION_RESULT',
                 data: result
-              }));
+              });
+              console.log("Sending result: ", result);
+              process.send(result);
             }).catch((error) => {
-              console.error("Configuration had error: ", error);
-              process.send(JSON.stringify({
+              console.error("Configuration had error: ", JSON.stringify(error));
+              const result = JSON.stringify({
                 type: 'CONFIGURATION_RESULT',
                 error: error
-              }))
+              });
+              console.log("Sending result: ", result);
+              process.send(result)
             });
             break;
           }
