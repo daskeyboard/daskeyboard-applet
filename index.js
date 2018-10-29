@@ -82,14 +82,14 @@ class QDesktopApp {
             });
             break;
           }
-        case 'SELECTIONS':
+        case 'OPTIONS':
           {
             console.log("CHILD Handling " + type);
-            this.selections(data.fieldName).then(selections => {
-              console.log("CHILD returned selections.");
+            this.options(data.fieldName).then(options => {
+              console.log("CHILD returned options.");
               const response = {
-                type: 'SELECTIONS',
-                data: selections
+                type: 'OPTIONS',
+                data: options
               }
               process.send(JSON.stringify(response));
             });
