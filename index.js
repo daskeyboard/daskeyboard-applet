@@ -60,7 +60,6 @@ class QDesktopApp {
           {
             console.log("Reconfiguring: " + JSON.stringify(data));
             this.applyConfig(Object.freeze(data));
-            this.reconfigure();
             break;
           }
         case 'SELECTIONS':
@@ -219,11 +218,6 @@ class QDesktopApp {
     }
   }
 
-  /**
-   * Implement this function if you need to reconfigure the instance or other variables
-   * based on a new applet configuration
-   */
-  reconfigure() {}
 
   /**
    * This method is called once each polling interval. This is where most
@@ -243,12 +237,20 @@ class QDesktopApp {
   /**
    * Given an (optional) fieldName, return the valid selections for that field
    * name. This is used to generate a UI to allow the user to configure the
-   * applet.
+   * applet. If the applet only has one option, you can ignore the fieldName.
    * @param {string} fieldName 
    * @returns {Object} an array of [key, value] pairs
    */
-  async selections(fieldName) {
+  async options(fieldName) {    
+  }
 
+  /**
+   * An alias for options(fieldName)
+   * @deprecated
+   * @param {string} fieldName 
+   */
+  async selections(fieldName) {
+    return this.options(fieldName);
   }
 
   async handleFlash() {
