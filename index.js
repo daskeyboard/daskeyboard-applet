@@ -90,7 +90,7 @@ class QDesktopApp {
               console.log("Sending result: ", result);
               process.send(result);
             }).catch((error) => {
-              console.error("Configuration had error: ", JSON.stringify(error));
+              console.error("Configuration had error: ", error);
               result = JSON.stringify({
                 type: 'CONFIGURATION_RESULT',
                 error: error
