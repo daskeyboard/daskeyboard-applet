@@ -6,13 +6,13 @@ environment.
 This module is installed via npm.
 
 ```
-npm install --save q-applet
+npm install --save daskeyboard-applet
 ```
 
 ## Getting Started
 Require the Q Applet API with:
 ```
-const q = require('q-applet');
+const q = require('daskeyboard-applet');
 ```
 
 Your app should extend `DesktopApp`, as in:
@@ -27,9 +27,9 @@ class QExample extends q.DesktopApp {
 }
 
 const myExample = new QExample();
-myExample.start();
+
 ```
-- Always invoke the `start()` method in your main body to begin processing 
+- Always instantiate your Applet instance in your main body to begin processing 
   and sending signals.
 
 - If you need to create a `constructor()` method, please be sure to invoke 
@@ -40,7 +40,7 @@ myExample.start();
   return a Signal object.
 
 - If you need to perform any work before the Applet is ready to run, then 
-  it can be included before invoking the `start()` function.
+  it can be included in the main body of your script.
 
 - If you need to perform any work before the Applet is closed, implement the
   `shutdown()` function. This function is invoked by a signal handler.
@@ -48,34 +48,42 @@ myExample.start();
 
 ## Signal
 Your applet communicates with the Das Keyboard Signal Center by returning
-`Signal` objects. A `Signal` object includes a 2-D array of `Point` objects.
+`Signal` objects. A `Signal` object includes a 2-D array of `Point` objects,
+along with an optional `name` and `description`.
+
 For example, the simplest `Signal` object would be:
 
 ```
-  return new q.Signal([[new q.Point('#FF0000)]]);
+  return new q.Signal({ points: [[new q.Point('#FF0000)]] });
 ```
 
 To light up a row of keys, send a single row of Points, e.g.:
 ```
-  return new q.Signal([[
-    new q.Point('#FF0000),
-    new q.Point('#00FF00),
-    new q.Point('#0000FF),
-    ]]);
+  return new q.Signal({
+    points: [[
+      new q.Point('#FF0000),
+      new q.Point('#00FF00),
+      new q.Point('#0000FF),
+      ]],
+    name: 'My Applet Name',
+    description: 'Some description of the signal'  
+    });
 ```
 
 To light up a rectangular region, send multiple rows of points, e.g: 
 ```
-  return new q.Signal([
-    [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
-    [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
-    [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
-    ]);
+  return new q.Signal({
+    points: [
+      [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
+      [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
+      [new q.Point('#FF0000), new q.Point('#00FF00), new q.Point('#0000FF)],
+      ]});
 ```
+
 ### Creating a signal within a callback function
 There are cases when your `run()` function may have to use a callback, and so
-cannot directly pass a `Signal` object as its return. In this case, use the
-`sendLocal()` function, e.g.:
+cannot directly pass a `Signal` object as its return. In this case, you can
+either return a promise, or you can use the `sendLocal()` function, e.g.:
 
 ```
   this.sendLocal(new q.Signal([[new q.Point('#FF0000)]]));
