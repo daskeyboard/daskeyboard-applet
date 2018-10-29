@@ -56,14 +56,17 @@ class QDesktopApp {
     let storageLocation = rootConfig.storageLocation;
     this.store = storageLocation ? new Storage(storageLocation) : null;
 
-    return this.applyConfig();
+    try {
+      return this.applyConfig();
+    } catch(error) {
+      throw new Error("Error while running applyConfig() against instance", error);
+    }
   }
 
   /**
    * Postprocess the configuration for internal needs of the app
    */
-  async applyConfig() {
-  }
+  async applyConfig() {}
 
 
   async handleMessage(m) {
@@ -264,8 +267,7 @@ class QDesktopApp {
    * @param {string} fieldName 
    * @returns {Object} an array of [{id, value} objects]
    */
-  async options(fieldName) {    
-  }
+  async options(fieldName) {}
 
   async handleFlash() {
     const width = this.geometry.width || 1;
