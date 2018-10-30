@@ -34,6 +34,7 @@ describe('QDesktopApplet', function () {
   describe('#run()', function () {
     it('should be able to run', function () {
       test.run().then((result) => {
+        console.log("Got result: " + result);
         assert.ok(result);
       });
     })

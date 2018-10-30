@@ -17,6 +17,7 @@ var extensionId;
 class QDesktopApp {
   constructor() {
     this.paused = false;
+    this.configured = false;
 
     process.on('SIGINT', (message) => {
       console.log("Got SIGINT, handling shutdown...");
@@ -37,6 +38,14 @@ class QDesktopApp {
       throw new Error("Error while processing config.", error);
     }
     console.log("Constructor finished.");
+
+    if (this.config.test) {
+      // set up default geometries
+      this.geometry.height = this.geometry.height || 1;
+      this.geometry.width = this.geometry.width || 1;
+      this.geometry.origin = this.geometry.origin || {x: 1, y: 0};
+      this.start();
+    }
   }
 
 
@@ -45,7 +54,7 @@ class QDesktopApp {
    * @param {*} config 
    */
   async processConfig(config) {
-    rootConfig = Object.freeze(config ? config : readConfig());
+    rootConfig = Object.freeze(config ? minimalConfig(config) : readConfig());
     console.log("Constructing app with ROOT config: ", rootConfig);
 
     this.extensionId = extensionId = rootConfig.extensionId;
@@ -57,7 +66,9 @@ class QDesktopApp {
     this.store = storageLocation ? new Storage(storageLocation) : null;
 
     try {
-      return this.applyConfig();
+      await this.applyConfig();
+      this.configured = true;
+      return true;
     } catch (error) {
       throw new Error("Error while running applyConfig() against instance", error);
     }
@@ -237,7 +248,9 @@ class QDesktopApp {
    * constant value, but may become dynamic in the future.
    */
   poll() {
-    if (this.paused) {
+    if (!this.configured) {
+      console.log("Waiting for configuration to complete.");
+    } else if (this.paused) {
       // no-op, we are paused
     } else if (this.pollingBusy) {
       console.log("Skipping run because we are still busy.");
@@ -371,21 +384,40 @@ const signalEndpoint = backendUrl + '/api/2.0/signals';
  * argument should be a JSON string.
  */
 function readConfig() {
+  console.log(`I have ${process.argv.length} arguments: ` + JSON.stringify(process.argv));
   if (process.argv.length > 2) {
     try {
-      let config = JSON.parse(process.argv[2]);
-      Object.freeze(config);
+      const arg2 = process.argv[2];
+      let config;
+      if (arg2 === 'TEST') {
+        if (process.argv.length > 3) {
+          config = minimalConfig(JSON.parse(process.argv[2]));
+        } else {
+          config = minimalConfig();
+        }
+        config.test = true;
+      } else {
+        config = minimalConfig(JSON.parse(process.argv[2]));
+      }      
       return config;
     } catch (error) {
       console.error("Could not parse config as JSON: " + process.argv[2]);
       process.exit(1);
     }
   } else {
-    return Object.freeze({
-      applet: {},
-      defaults: {}
-    });
+    return minimalConfig();
   }
+}
+
+/**
+ * Ensure a config object has the minimum requirements
+ * @param {*} config 
+ */
+function minimalConfig(config = {}) {
+  config.applet = config.applet || {};
+  config.defaults = config.defaults || {};
+
+  return config;
 }
 
 
