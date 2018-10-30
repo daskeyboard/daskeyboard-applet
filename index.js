@@ -240,7 +240,7 @@ class QDesktopApp {
     this.paused = false;
     if (!this.configured) {
       console.log("Waiting for configuration to complete.");
-      setInterval(() => {
+      setTimeout(() => {
         this.start();
       }, 1000);
     } else {
@@ -248,8 +248,8 @@ class QDesktopApp {
 
       setInterval(() => {
         this.poll();
-
       }, this.pollingInterval);
+
     }
   }
 
