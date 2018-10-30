@@ -43,7 +43,10 @@ class QDesktopApp {
       // set up default geometries
       this.geometry.height = this.geometry.height || 1;
       this.geometry.width = this.geometry.width || 1;
-      this.geometry.origin = this.geometry.origin || {x: 1, y: 0};
+      this.geometry.origin = this.geometry.origin || {
+        x: 1,
+        y: 0
+      };
       this.start();
     }
   }
@@ -235,12 +238,19 @@ class QDesktopApp {
    */
   start() {
     this.paused = false;
-    this.poll();
-
-    setInterval(() => {
+    if (!this.configured) {
+      console.log("Waiting for configuration to complete.");
+      setInterval(() => {
+        this.start();
+      }, 1000);
+    } else {
       this.poll();
 
-    }, this.pollingInterval);
+      setInterval(() => {
+        this.poll();
+
+      }, this.pollingInterval);
+    }
   }
 
   /**
@@ -248,9 +258,7 @@ class QDesktopApp {
    * constant value, but may become dynamic in the future.
    */
   poll() {
-    if (!this.configured) {
-      console.log("Waiting for configuration to complete.");
-    } else if (this.paused) {
+    if (this.paused) {
       // no-op, we are paused
     } else if (this.pollingBusy) {
       console.log("Skipping run because we are still busy.");
@@ -398,7 +406,7 @@ function readConfig() {
         config.test = true;
       } else {
         config = minimalConfig(JSON.parse(process.argv[2]));
-      }      
+      }
       return config;
     } catch (error) {
       console.error("Could not parse config as JSON: " + process.argv[2]);
