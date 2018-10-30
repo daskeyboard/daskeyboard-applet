@@ -8,7 +8,9 @@ class TestApplet extends q.DesktopApp {
   }
 
   async run() {
-    return true;
+    return (new q.Signal({points: [
+      [new q.Point('#FF0000', q.Effects.BLINK)]
+    ]}));
   }
 }
 
@@ -33,9 +35,10 @@ describe('QDesktopApplet', function () {
   });
   describe('#run()', function () {
     it('should be able to run', function () {
-      test.run().then((result) => {
-        console.log("Got result: " + result);
-        assert.ok(result);
+      test.run().then((signal) => {
+        console.log("Got signal: " + JSON.stringify(signal));
+        assert.ok(signal, 'Did not return a truthy signal.');
+        assert(signal.points.length === 1, 'Signal did not return the correct number of points.');
       });
     })
   })

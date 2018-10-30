@@ -18,10 +18,9 @@ class QExample extends q.DesktopApp {
 
     // config.extensionId identifies what extension is providing
     // the signal
-    return new q.Signal([points]);
+    return(new q.Signal([points]));
   }
 }
 
 
 const example = new QExample();
-example.start();

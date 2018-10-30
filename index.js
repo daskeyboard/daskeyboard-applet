@@ -7,9 +7,6 @@ const signalHeaders = {
 }
 
 const defaultPollingInterval = 60000;
-var rootConfig;
-var extensionId;
-
 
 /**
  * The base class for apps that run on the Q Desktop
@@ -17,7 +14,7 @@ var extensionId;
 class QDesktopApp {
   constructor() {
     this.paused = false;
-    this.configured = false;
+    this.configured = false;    
 
     process.on('SIGINT', (message) => {
       console.log("Got SIGINT, handling shutdown...");
@@ -39,14 +36,8 @@ class QDesktopApp {
     }
     console.log("Constructor finished.");
 
-    if (this.config.test) {
-      // set up default geometries
-      this.geometry.height = this.geometry.height || 1;
-      this.geometry.width = this.geometry.width || 1;
-      this.geometry.origin = this.geometry.origin || {
-        x: 1,
-        y: 0
-      };
+    if (this.testMode) {
+      console.log("Starting in test mode...");
       this.start();
     }
   }
@@ -58,15 +49,28 @@ class QDesktopApp {
    */
   async processConfig(config) {
     this.configured = false;
-    rootConfig = Object.freeze(config ? minimalConfig(config) : readConfig());
-    console.log("Constructing app with ROOT config: ", rootConfig);
+    this.rootConfig = Object.freeze(config ? minimalConfig(config) : readConfig());
+    console.log("Constructing app with ROOT config: ", this.rootConfig);
 
-    this.extensionId = extensionId = rootConfig.extensionId;
-    this.config = Object.freeze(utility.mergeDeep({}, rootConfig.applet.defaults || {}, rootConfig.applet.user || {}));
-    this.authorization = Object.freeze(rootConfig.authorization || {});
-    this.geometry = Object.freeze(rootConfig.geometry || {});
+    this.extensionId = this.rootConfig.extensionId;
+    this.config = Object.freeze(utility.mergeDeep({}, this.rootConfig.applet.defaults || {}, this.rootConfig.applet.user || {}));
+    this.authorization = Object.freeze(this.rootConfig.authorization || {});
+    const geometry = this.rootConfig.geometry || {};
+    this.testMode = this.rootConfig.testMode;
+    if (this.testMode) {
+      // set up default geometries
+      geometry.height = geometry.height || 1;
+      geometry.width = geometry.width || 1;
+      geometry.origin = geometry.origin || {
+        x: 1,
+        y: 0
+      };
 
-    let storageLocation = rootConfig.storageLocation;
+    }
+    this.geometry = Object.freeze(geometry);
+
+
+    let storageLocation = this.rootConfig.storageLocation;
     this.store = storageLocation ? new Storage(storageLocation) : null;
 
     try {
@@ -112,7 +116,7 @@ class QDesktopApp {
             result = JSON.stringify({
               status: 'error',
               data: {
-              type: 'CONFIGURATION_RESULT',
+                type: 'CONFIGURATION_RESULT',
               },
               message: error + ''
             });
@@ -173,7 +177,8 @@ class QDesktopApp {
    * Send a signal to the local Das Keyboard Q Service.
    * @param {Signal} signal 
    */
-  async sendLocal(signal) {
+  async signal(signal) {
+    signal.extensionId = this.extensionId;
     if (!this.geometry || !this.geometry.origin) {
       console.error("Geometry is not properly defined:", this.geometry);
     } else {
@@ -266,7 +271,7 @@ class QDesktopApp {
         this.pollingBusy = false;
 
         if (signal) {
-          this.sendLocal(signal);
+          this.signal(signal);
         }
       }).catch((error) => {
         this.errorState = error;
@@ -360,7 +365,7 @@ class QDesktopSignal {
     this.name = name;
     this.message = message;
     this.isMuted = isMuted;
-    this.extensionId = extensionId;
+    this.extensionId = null;
   }
 }
 
@@ -392,17 +397,19 @@ function readConfig() {
   console.log(`I have ${process.argv.length} arguments: ` + JSON.stringify(process.argv));
   if (process.argv.length > 2) {
     try {
-      const arg2 = process.argv[2];
+      const arg3 = process.argv[2];
       let config;
-      if (arg2 === 'TEST') {
+      if (arg3.toUpperCase() === 'TEST') {
+        console.log("Configuring in test mode...");
         if (process.argv.length > 3) {
-          config = minimalConfig(JSON.parse(process.argv[2]));
+          config = minimalConfig(JSON.parse(process.argv[3]));
         } else {
           config = minimalConfig();
         }
-        config.test = true;
+        console.log("Generated test configuration: ", config);
+        config.testMode = true;
       } else {
-        config = minimalConfig(JSON.parse(process.argv[2]));
+        config = minimalConfig(JSON.parse(arg3));
       }
       return config;
     } catch (error) {
