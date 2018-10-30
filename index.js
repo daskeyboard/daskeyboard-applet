@@ -30,7 +30,7 @@ class QDesktopApp {
     this.pollingBusy = false;
     this.errorState = null;
 
-    process.on('message', (m) => this.handleMessage(m));
+    process.on('message', (m) => this.handleMessage(JSON.parse(m)));
 
     try {
       this.processConfig();
@@ -57,6 +57,7 @@ class QDesktopApp {
    * @param {*} config 
    */
   async processConfig(config) {
+    this.configured = false;
     rootConfig = Object.freeze(config ? minimalConfig(config) : readConfig());
     console.log("Constructing app with ROOT config: ", rootConfig);
 
@@ -86,88 +87,84 @@ class QDesktopApp {
   }
 
 
-  async handleMessage(m) {
-    if (m.startsWith('{')) {
-      const message = JSON.parse(m);
-      console.log("CHILD Received JSON message: ", message);
-
-      const type = message.type;
-      const data = message.data;
-      switch (type) {
-        case 'CONFIGURE':
-          {
-            let result = null;
-            console.log("Reconfiguring: " + JSON.stringify(data));
-            this.processConfig(Object.freeze(data)).then((result) => {
-              console.log("Configuration was successful: ", result);
-              result = JSON.stringify({
+  async handleMessage(message) {
+    console.log("CHILD Received JSON message: ", message);
+    const data = message.data || {};
+    const type = data.type;
+    switch (type) {
+      case 'CONFIGURE':
+        {
+          let result = null;
+          console.log("Reconfiguring: " + JSON.stringify(data.configuration));
+          this.processConfig(Object.freeze(data.configuration)).then((result) => {
+            console.log("Configuration was successful: ", result);
+            result = JSON.stringify({
+              status: 'success',
+              data: {
                 type: 'CONFIGURATION_RESULT',
-                data: result + ''
-              });
-              console.log("Sending result: ", result);
-              process.send(result);
-            }).catch((error) => {
-              console.error("Configuration had error: ", error);
-              result = JSON.stringify({
-                type: 'CONFIGURATION_RESULT',
-                error: error + ''
-              });
-              console.log("Sending result: ", result);
-              process.send(result)
-            });
-            break;
-          }
-        case 'OPTIONS':
-          {
-            console.log("CHILD Handling " + type);
-            this.options(data.fieldName).then(options => {
-              console.log("CHILD returned options.");
-              const response = {
-                type: 'OPTIONS',
-                data: options
+                result: result + ''
               }
-              process.send(JSON.stringify(response));
             });
-            break;
-          }
-        default:
-          {
-            console.error("Don't know how to handle JSON message of type: '" + type + "'");
-          }
-      }
-    } else {
-      switch (m) {
-        case 'FLASH':
-          {
-            console.log("Got FLASH");
-            this.handleFlash();
-            break;
-          }
-
-        case 'PAUSE':
-          {
-            console.log("Got PAUSE");
-            this.paused = true;
-            break;
-          }
-
-        case 'START':
-          {
-            console.log("Got START");
-            if (this.paused) {
-              this.paused = false;
-              this.poll();
-            } else {
-              this.start();
+            console.log("Sending result: ", result);
+            process.send(result);
+          }).catch((error) => {
+            console.error("Configuration had error: ", error);
+            result = JSON.stringify({
+              status: 'error',
+              data: {
+              type: 'CONFIGURATION_RESULT',
+              },
+              message: error + ''
+            });
+            console.log("Sending result: ", result);
+            process.send(result)
+          });
+          break;
+        }
+      case 'FLASH':
+        {
+          console.log("Got FLASH");
+          this.handleFlash();
+          break;
+        }
+      case 'OPTIONS':
+        {
+          console.log("CHILD Handling " + type);
+          this.options(data.fieldName).then(options => {
+            console.log("CHILD returned options.");
+            const response = {
+              status: 'success',
+              data: {
+                type: 'OPTIONS',
+                options: options
+              }
             }
-            break;
+            process.send(JSON.stringify(response));
+          });
+          break;
+        }
+      case 'PAUSE':
+        {
+          console.log("Got PAUSE");
+          this.paused = true;
+          break;
+        }
+      case 'START':
+        {
+          console.log("Got START");
+          if (this.paused) {
+            this.paused = false;
+            this.poll();
+          } else {
+            this.start();
           }
+          break;
+        }
 
-        default:
-          {
-            console.error("Don't know what to do with message: '" + m + "'");
-          }
-      }
+      default:
+        {
+          console.error("Don't know how to handle JSON message of type: '" + type + "'");
+        }
     }
   }
 

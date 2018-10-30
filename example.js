@@ -1,7 +1,4 @@
-const q = require('qbuzz');
-
-const config = q.Config();
-console.log("My config", JSON.stringify(config));
+const q = require('./index');
 
 class QExample extends q.DesktopApp {
   /** just send a signal without thinking about it  */
