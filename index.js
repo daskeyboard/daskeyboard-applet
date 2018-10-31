@@ -49,11 +49,12 @@ class QDesktopApp {
    */
   async processConfig(config) {
     this.configured = false;
-    this.rootConfig = Object.freeze(config ? minimalConfig(config) : readConfig());
-    logger.info("Constructing app with ROOT config: ", this.rootConfig);
+    this.rootConfig = Object.freeze(minimalConfig(config ? config : readConfig()));
+    logger.info("Constructing app with ROOT config: " + JSON.stringify(this.rootConfig));
 
     this.extensionId = this.rootConfig.extensionId;
     this.config = Object.freeze(utility.mergeDeep({}, this.rootConfig.applet.defaults || {}, this.rootConfig.applet.user || {}));
+
     this.authorization = Object.freeze(this.rootConfig.authorization || {});
     const geometry = this.rootConfig.geometry || {};
     this.testMode = this.rootConfig.testMode;
@@ -70,8 +71,8 @@ class QDesktopApp {
     this.geometry = Object.freeze(geometry);
 
 
-    let storageLocation = this.rootConfig.storageLocation;
-    this.store = storageLocation ? new Storage(storageLocation) : null;
+    let storageLocation = this.rootConfig.storageLocation || 'local-storage.json';
+    this.store = new Storage(storageLocation);
 
     try {
       await this.applyConfig();
@@ -92,7 +93,7 @@ class QDesktopApp {
 
 
   async handleMessage(message) {
-    logger.info("CHILD Received JSON message: ", message);
+    logger.info("CHILD Received JSON message: " + message);
     const data = message.data || {};
     const type = data.type;
     switch (type) {
@@ -101,7 +102,7 @@ class QDesktopApp {
           let result = null;
           logger.info("Reconfiguring: " + JSON.stringify(data.configuration));
           this.processConfig(Object.freeze(data.configuration)).then((result) => {
-            logger.info("Configuration was successful: ", result);
+            logger.info("Configuration was successful: " + result);
             result = JSON.stringify({
               status: 'success',
               data: {
@@ -109,7 +110,7 @@ class QDesktopApp {
                 result: result + ''
               }
             });
-            logger.info("Sending result: ", result);
+            logger.info("Sending result: " + result);
             process.send(result);
           }).catch((error) => {
             logger.error("Configuration had error: ", error);
@@ -120,7 +121,7 @@ class QDesktopApp {
               },
               message: error + ''
             });
-            logger.info("Sending result: ", result);
+            logger.info("Sending result: " + result);
             process.send(result)
           });
           break;
@@ -401,15 +402,17 @@ function readConfig() {
       let config;
       if (arg3.toUpperCase() === 'TEST') {
         logger.info("Configuring in test mode...");
-        if (process.argv.length > 3) {
-          config = minimalConfig(JSON.parse(process.argv[3]));
+        if (process.argv.length > 3 && process.argv[3].startsWith('{')) {
+          config = JSON.parse(process.argv[3]);
+          logger.info("Parsed test config as: " + JSON.stringify(config));
         } else {
-          config = minimalConfig();
+          logger.info("Generating minimal test config.");
+          config = {};
         }
         logger.info("Generated test configuration: ", config);
         config.testMode = true;
       } else {
-        config = minimalConfig(JSON.parse(arg3));
+        config = JSON.parse(arg3);
       }
       return config;
     } catch (error) {
