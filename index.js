@@ -183,8 +183,8 @@ class QDesktopApp {
     if (!this.geometry || !this.geometry.origin) {
       logger.error("Geometry is not properly defined:", this.geometry);
     } else {
-      const originX = this.geometry.origin.x || 0;
-      const originY = this.geometry.origin.y || 0;
+      const originX = this.getOriginX();
+      const originY = this.getOriginY();
 
       const actionValue = [];
 
@@ -252,7 +252,6 @@ class QDesktopApp {
       setInterval(() => {
         this.poll();
       }, this.pollingInterval);
-
     }
   }
 
@@ -308,9 +307,41 @@ class QDesktopApp {
    */
   async options(fieldName) {}
 
+  /**
+   * Get the applet's configured width.
+   * @returns the width
+   */
+  getWidth() {
+    return this.geometry.width;
+  }
+
+  /**
+   * Get the applet's configured height.
+   * @returns the height
+   */
+  getHeight() {
+    return this.geometry.height;
+  }
+
+  /**
+   * Get the applet's configured X origin.
+   * @returns the X origin
+   */
+  getOriginX() {
+    return this.geometry.origin.x;
+  }
+  
+  /**
+   * Get the applet's configured Y origin.
+   * @returns the Y origin
+   */
+  getOriginY() {
+    return this.geometry.origin.y;
+  }
+
   async handleFlash() {
-    const width = this.geometry.width || 1;
-    const height = this.geometry.height || 1;
+    const width = this.getWidth();
+    const height = this.getHeight();
 
     const row = [];
     for (let i = 0; i < width; i += 1) {

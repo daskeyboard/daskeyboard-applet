@@ -32,9 +32,13 @@ const myExample = new QExample();
 - Always instantiate your Applet instance in your main body to begin processing 
   and sending signals.
 
+## DesktopApp functions
+### Constructor
 - If you need to create a `constructor()` method, please be sure to invoke 
   `super()` to initialize some important variables and signal handlers.
+- Do not use the constructor for any functionality or state that is related to the applet's configuration. The configuration may change as the applet is running. To update the applet's state based on configuration, extend the `applyConfig()` method.
 
+### run()
 - The `run()` method is your primary extension point. This method will be
   invoked at regular intervals. This method should do some work, and then
   return a Signal object.
@@ -44,6 +48,9 @@ const myExample = new QExample();
 
 - If you need to perform any work before the Applet is closed, implement the
   `shutdown()` function. This function is invoked by a signal handler.
+
+### applyConfig()
+- The applet will process any configuration, at launch and whenever a configuration change is sent, with a method `processConfig({*})`. If your applet's state needs to change based on the new configuration, implement `applyConfig()`. The applet's `this.config` object will have been updated to reflect the new configuration.
 
 
 ## Signal
@@ -86,7 +93,7 @@ cannot directly pass a `Signal` object as its return. In this case, you can
 either return a promise, or you can use the `sendLocal()` function, e.g.:
 
 ```
-  this.sendLocal(new q.Signal([[new q.Point('#FF0000)]]));
+  this.signal(new q.Signal([[new q.Point('#FF0000)]]));
 ```
 
 ## Point
@@ -101,3 +108,12 @@ You can also specify an effect if you wish:
 ```
   let point = new q.Point('#FF0000', q.Effects.BLINK);
 ```
+
+## Applet Configuration
+The applet is configured with the following member variables:
+
+### this.geometry
+The geometry configuration
+
+## Testing an Applet
+### 
