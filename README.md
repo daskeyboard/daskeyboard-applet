@@ -22,7 +22,7 @@ class QExample extends q.DesktopApp {
   /** just send a signal without thinking about it  */
   async run() {
     // do some work, then return a signal
-    return new q.Signal([[new q.Point('#FF0000')]]);
+    return new q.Signal({ points: [[new q.Point('#FF0000')]] });
   }
 }
 
@@ -100,7 +100,7 @@ cannot directly pass a `Signal` object as its return. In this case, you can
 either return a promise, or you can use the `this.signal()` function, e.g.:
 
 ```
-  this.signal(new q.Signal([[new q.Point('#FF0000)]]));
+  this.signal(new q.Signal({ points: [[new q.Point('#FF0000)]] }));
 ```
 
 ## The Point Class
