@@ -93,9 +93,10 @@ class QDesktopApp {
 
 
   async handleMessage(message) {
-    logger.info("CHILD Received JSON message: " + message);
+    logger.info("CHILD Received JSON message: " + JSON.stringify(message));
     const data = message.data || {};
     const type = data.type;
+    logger.info("Message type: " + type);
     switch (type) {
       case 'CONFIGURE':
         {
