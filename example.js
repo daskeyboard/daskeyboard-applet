@@ -1,4 +1,5 @@
 const q = require('./index');
+const logger = q.logger;
 
 class QExample extends q.DesktopApp {
   /** just send a signal without thinking about it  */
@@ -18,7 +19,9 @@ class QExample extends q.DesktopApp {
 
     // config.extensionId identifies what extension is providing
     // the signal
-    return(new q.Signal([points]));
+    const signal = new q.Signal([points]);
+    logger.info("Sending signal: ", signal);
+    return(signal);
   }
 }
 

@@ -1,7 +1,7 @@
 const request = require('request-promise');
 const Storage = require('node-storage');
+const logger = require('./lib/logger');
 const utility = require('./lib/utility');
-
 const signalHeaders = {
   "Content-Type": "application/json"
 }
@@ -17,9 +17,9 @@ class QDesktopApp {
     this.configured = false;    
 
     process.on('SIGINT', (message) => {
-      console.log("Got SIGINT, handling shutdown...");
+      logger.info("Got SIGINT, handling shutdown...");
       this.shutdown();
-      console.log("Exiting the process.");
+      logger.info("Exiting the process.");
       process.exit();
     })
 
@@ -34,10 +34,10 @@ class QDesktopApp {
     } catch (error) {
       throw new Error("Error while processing config.", error);
     }
-    console.log("Constructor finished.");
+    logger.info("Constructor finished.");
 
     if (this.testMode) {
-      console.log("Starting in test mode...");
+      logger.info("Starting in test mode...");
       this.start();
     }
   }
@@ -50,7 +50,7 @@ class QDesktopApp {
   async processConfig(config) {
     this.configured = false;
     this.rootConfig = Object.freeze(config ? minimalConfig(config) : readConfig());
-    console.log("Constructing app with ROOT config: ", this.rootConfig);
+    logger.info("Constructing app with ROOT config: ", this.rootConfig);
 
     this.extensionId = this.rootConfig.extensionId;
     this.config = Object.freeze(utility.mergeDeep({}, this.rootConfig.applet.defaults || {}, this.rootConfig.applet.user || {}));
@@ -92,16 +92,16 @@ class QDesktopApp {
 
 
   async handleMessage(message) {
-    console.log("CHILD Received JSON message: ", message);
+    logger.info("CHILD Received JSON message: ", message);
     const data = message.data || {};
     const type = data.type;
     switch (type) {
       case 'CONFIGURE':
         {
           let result = null;
-          console.log("Reconfiguring: " + JSON.stringify(data.configuration));
+          logger.info("Reconfiguring: " + JSON.stringify(data.configuration));
           this.processConfig(Object.freeze(data.configuration)).then((result) => {
-            console.log("Configuration was successful: ", result);
+            logger.info("Configuration was successful: ", result);
             result = JSON.stringify({
               status: 'success',
               data: {
@@ -109,10 +109,10 @@ class QDesktopApp {
                 result: result + ''
               }
             });
-            console.log("Sending result: ", result);
+            logger.info("Sending result: ", result);
             process.send(result);
           }).catch((error) => {
-            console.error("Configuration had error: ", error);
+            logger.error("Configuration had error: ", error);
             result = JSON.stringify({
               status: 'error',
               data: {
@@ -120,22 +120,22 @@ class QDesktopApp {
               },
               message: error + ''
             });
-            console.log("Sending result: ", result);
+            logger.info("Sending result: ", result);
             process.send(result)
           });
           break;
         }
       case 'FLASH':
         {
-          console.log("Got FLASH");
+          logger.info("Got FLASH");
           this.handleFlash();
           break;
         }
       case 'OPTIONS':
         {
-          console.log("CHILD Handling " + type);
+          logger.info("CHILD Handling " + type);
           this.options(data.fieldName).then(options => {
-            console.log("CHILD returned options.");
+            logger.info("CHILD returned options.");
             const response = {
               status: 'success',
               data: {
@@ -149,13 +149,13 @@ class QDesktopApp {
         }
       case 'PAUSE':
         {
-          console.log("Got PAUSE");
+          logger.info("Got PAUSE");
           this.paused = true;
           break;
         }
       case 'START':
         {
-          console.log("Got START");
+          logger.info("Got START");
           if (this.paused) {
             this.paused = false;
             this.poll();
@@ -167,7 +167,7 @@ class QDesktopApp {
 
       default:
         {
-          console.error("Don't know how to handle JSON message of type: '" + type + "'");
+          logger.error("Don't know how to handle JSON message of type: '" + type + "'");
         }
     }
   }
@@ -180,14 +180,14 @@ class QDesktopApp {
   async signal(signal) {
     signal.extensionId = this.extensionId;
     if (!this.geometry || !this.geometry.origin) {
-      console.error("Geometry is not properly defined:", this.geometry);
+      logger.error("Geometry is not properly defined:", this.geometry);
     } else {
       const originX = this.geometry.origin.x || 0;
       const originY = this.geometry.origin.y || 0;
 
       const actionValue = [];
 
-      //console.log("Signal is: " + JSON.stringify(signal));
+      //logger.info("Signal is: " + JSON.stringify(signal));
 
       const rows = signal.points;
       for (let y = 0; y < rows.length; y++) {
@@ -212,7 +212,7 @@ class QDesktopApp {
         clientName: this.extensionId
       }
 
-      // console.log("Posting to local service:", JSON.stringify(body));
+      // logger.info("Posting to local service:", JSON.stringify(body));
 
       return request.post({
         uri: signalEndpoint,
@@ -224,10 +224,10 @@ class QDesktopApp {
       }).catch(function (err) {
         const error = err.error;
         if (error.code === 'ECONNREFUSED') {
-          console.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
+          logger.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
             ` the Das Keyboard Q software  is running`);
         } else {
-          console.error('Error sending signal ', error);
+          logger.error('Error sending signal ', error);
         }
       });
     }
@@ -241,7 +241,7 @@ class QDesktopApp {
   start() {
     this.paused = false;
     if (!this.configured) {
-      console.log("Waiting for configuration to complete.");
+      logger.info("Waiting for configuration to complete.");
       setTimeout(() => {
         this.start();
       }, 1000);
@@ -263,7 +263,7 @@ class QDesktopApp {
     if (this.paused) {
       // no-op, we are paused
     } else if (this.pollingBusy) {
-      console.log("Skipping run because we are still busy.");
+      logger.info("Skipping run because we are still busy.");
     } else {
       this.pollingBusy = true;
       this.run().then((signal) => {
@@ -275,7 +275,7 @@ class QDesktopApp {
         }
       }).catch((error) => {
         this.errorState = error;
-        console.error(
+        logger.error(
           "Applet encountered an uncaught error in its main loop", error);
         this.pollingBusy = false;
       });
@@ -326,7 +326,7 @@ class QDesktopApp {
       isMuted: false,
     });
 
-    console.log("Flashing with signal: " + JSON.stringify(signal));
+    logger.info("Flashing with signal: " + JSON.stringify(signal));
     return this.sendLocal(signal);
   }
 }
@@ -394,26 +394,26 @@ const signalEndpoint = backendUrl + '/api/2.0/signals';
  * argument should be a JSON string.
  */
 function readConfig() {
-  console.log(`I have ${process.argv.length} arguments: ` + JSON.stringify(process.argv));
+  logger.info(`I have ${process.argv.length} arguments: ` + JSON.stringify(process.argv));
   if (process.argv.length > 2) {
     try {
       const arg3 = process.argv[2];
       let config;
       if (arg3.toUpperCase() === 'TEST') {
-        console.log("Configuring in test mode...");
+        logger.info("Configuring in test mode...");
         if (process.argv.length > 3) {
           config = minimalConfig(JSON.parse(process.argv[3]));
         } else {
           config = minimalConfig();
         }
-        console.log("Generated test configuration: ", config);
+        logger.info("Generated test configuration: ", config);
         config.testMode = true;
       } else {
         config = minimalConfig(JSON.parse(arg3));
       }
       return config;
     } catch (error) {
-      console.error("Could not parse config as JSON: " + process.argv[2]);
+      logger.error("Could not parse config as JSON: " + process.argv[2]);
       process.exit(1);
     }
   } else {
@@ -435,6 +435,7 @@ function minimalConfig(config = {}) {
 
 
 module.exports = {
+  logger: logger,
   DesktopApp: QDesktopApp,
   Point: QPoint,
   Signal: QDesktopSignal,
