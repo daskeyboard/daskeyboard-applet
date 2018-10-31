@@ -87,4 +87,22 @@ describe('QDesktopApplet', function () {
       assert(7 == geometryTest.getOriginY());
     })
   });
+  describe('#signal()', function () {
+    it('should signal', function () {
+      test.signal(new q.Signal({
+        points: [
+          [new q.Point('#00FF00')]
+        ]
+      })).then(result => {
+        assert.ok(result);
+      });
+    })
+  });
+  describe('#signalError()', function () {
+    it('should signalError', function () {
+      test.signalError(['foo', 'bar']).then(result => {
+        assert.ok(result);
+      });
+    })
+  });
 });

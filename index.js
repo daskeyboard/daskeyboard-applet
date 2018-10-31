@@ -182,8 +182,12 @@ class QDesktopApp {
   async signal(signal) {
     signal.extensionId = this.extensionId;
     if (!this.geometry || !this.geometry.origin) {
-      logger.error("Geometry is not properly defined:", this.geometry);
+      const message = "Geometry is not properly defined:" + this.geometry;
+      logger.error(message);
+      throw new Error(message);
     } else {
+      const height = this.getHeight();
+      const width = this.getWidth();
       const originX = this.getOriginX();
       const originY = this.getOriginY();
 
@@ -192,9 +196,9 @@ class QDesktopApp {
       //logger.info("Signal is: " + JSON.stringify(signal));
 
       const rows = signal.points;
-      for (let y = 0; y < rows.length; y++) {
+      for (let y = 0; y < rows.length && y < height; y++) {
         const columns = rows[y];
-        for (let x = 0; x < columns.length; x++) {
+        for (let x = 0; x < columns.length && x < width; x++) {
           const point = columns[x];
           actionValue.push({
             zoneId: (originX + x) + ',' + (originY + y),
@@ -211,18 +215,22 @@ class QDesktopApp {
         message: signal.message,
         name: signal.name,
         isMuted: signal.isMuted,
-        clientName: this.extensionId
+        clientName: this.extensionId,
+        errors: signal.errors,
       }
 
-      // logger.info("Posting to local service:", JSON.stringify(body));
+      logger.info("Posting to local service:" + JSON.stringify(body));
 
       return request.post({
         uri: signalEndpoint,
         headers: signalHeaders,
         body: body,
-        json: true
-      }).then(function (json) {
-        // no-op on successful completion
+        json: true,
+        resolveWithFullResponse: true
+      }).then(function (response) {
+        logger.info('Signal service responded with status: ' 
+          + response.statusCode);
+        return response;
       }).catch(function (err) {
         const error = err.error;
         if (error.code === 'ECONNREFUSED') {
@@ -231,10 +239,27 @@ class QDesktopApp {
         } else {
           logger.error('Error sending signal ', error);
         }
+
+        throw error;
       });
     }
   }
 
+  /**
+   * Send error signal to the desktop
+   * @param {Array<string>} messages 
+   */
+  async signalError(messages) {
+    if (!Array.isArray(messages)) {
+      messages = [messages];
+    }
+
+    return this.signal(new QDesktopSignal({
+      points: [[]],
+      errors: messages,
+      action: 'ERROR',
+    }));
+  }
 
   /**
    * The entry point for the app. Currently only launches the polling function,
@@ -290,6 +315,7 @@ class QDesktopApp {
    */
   async run() {
     // Implement this method and do some work here.
+    return null;
   }
 
 
@@ -297,7 +323,9 @@ class QDesktopApp {
    * The extension point for any activities that should
    * take place before shutting down.
    */
-  shutdown() {}
+  shutdown() {
+    return null;
+  }
 
   /**
    * Given an (optional) fieldName, return the valid options for that field
@@ -306,7 +334,9 @@ class QDesktopApp {
    * @param {string} fieldName 
    * @returns {Object} an array of [{id, value} objects]
    */
-  async options(fieldName) {}
+  async options(fieldName) {
+    return null;
+  }
 
   /**
    * Get the applet's configured width.
@@ -391,7 +421,8 @@ class QDesktopSignal {
     name = 'Q Desktop Signal',
     message = '',
     isMuted = true,
-    action = 'DRAW'
+    action = 'DRAW',
+    errors = [],
   }) {
     this.points = points;
     this.action = action;
@@ -399,6 +430,7 @@ class QDesktopSignal {
     this.message = message;
     this.isMuted = isMuted;
     this.extensionId = null;
+    this.errors = errors;
   }
 }
 
