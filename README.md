@@ -32,13 +32,13 @@ const myExample = new QExample();
 - Always instantiate your Applet instance in your main body to begin processing 
   and sending signals.
 
-## DesktopApp functions
-### Constructor
+# DesktopApp functions
+## Constructor
 - If you need to create a `constructor()` method, please be sure to invoke 
   `super()` to initialize some important variables and signal handlers.
 - Do not use the constructor for any functionality or state that is related to the applet's configuration. The configuration may change as the applet is running. To update the applet's state based on configuration, extend the `applyConfig()` method.
 
-### run()
+## run()
 - The `run()` method is your primary extension point. This method will be
   invoked at regular intervals. This method should do some work, and then
   return a Signal object.
@@ -49,11 +49,11 @@ const myExample = new QExample();
 - If you need to perform any work before the Applet is closed, implement the
   `shutdown()` function. This function is invoked by a signal handler.
 
-### applyConfig()
+## applyConfig()
 - The applet will process any configuration, at launch and whenever a configuration change is sent, with a method `processConfig({*})`. If your applet's state needs to change based on the new configuration, implement `applyConfig()`. The applet's `this.config` object will have been updated to reflect the new configuration.
 
 
-## Signal
+# Creating Signals
 Your applet communicates with the Das Keyboard Signal Center by returning
 `Signal` objects. A `Signal` object includes a 2-D array of `Point` objects,
 along with an optional `name` and `description`.
@@ -87,7 +87,7 @@ To light up a rectangular region, send multiple rows of points, e.g:
       ]});
 ```
 
-### Creating a signal within a callback function
+## Creating a signal within a callback function
 There are cases when your `run()` function may have to use a callback, and so
 cannot directly pass a `Signal` object as its return. In this case, you can
 either return a promise, or you can use the `sendLocal()` function, e.g.:
@@ -96,7 +96,7 @@ either return a promise, or you can use the `sendLocal()` function, e.g.:
   this.signal(new q.Signal([[new q.Point('#FF0000)]]));
 ```
 
-## Point
+## The Point Class
 Each `Point` should specify, at a minimum, the RGB color that the key should
 be illuminated to:
 
@@ -109,11 +109,85 @@ You can also specify an effect if you wish:
   let point = new q.Point('#FF0000', q.Effects.BLINK);
 ```
 
-## Applet Configuration
+# Applet Configuration
 The applet is configured with the following member variables:
 
-### this.geometry
-The geometry configuration
+## this.geometry
+The geometry configuration is stored in an object with the following format:
+```
+{
+  width: <number>
+  height: <number>
+  origin: {
+    x: <number>,
+    y: <number>
+  }
+}
+```
+You can also inspect the applet's geometry with the functions:
+- `this.getWidth()`
+- `this.getHeight()`
+- `this.getOriginX()`
+- `this.getOriginY()`
 
-## Testing an Applet
-### 
+## this.authorization
+Currently we support authorization by API Key or Basic Authentication. The authorization object looks like:
+
+```
+{
+  apiKey: <string>,
+  username: <string>,
+  password: <string>
+}
+```
+
+## this.config
+The config object is for any values that are specific to the application. This object is built by merging the default configuration values that are supplied in `package.json` with any user-supplied values that were input during applet installation.
+
+
+# Testing an Applet
+You can run an applet in test mode by invoking it via node, using the following syntax:
+
+`node <script name> test '{ <config> }'`
+
+The config object is a combination of all of the configuration variables described in Applet Configuration. The format of the config object is:
+
+```
+{
+  "geometry": { 
+    "width": <number>
+    "height": <number>
+    "origin": {
+      "x": <number>,
+      "y": <number>
+    }    
+  },
+  "authorization": {
+    "apiKey": <string>,
+    "username": <string>,
+    "password": <string>
+  },
+  "applet": {
+    "user": {
+      <any properties that need to be available in this.config >
+    }
+  }
+}
+```
+- Remember that this is a command-line parameter, so you need to either ensure the entire config is entered on one line, or use line separators `\`.
+- If you don't specify the geometry, the default is a 1x1 applet on the `Esc` key.
+
+## Basic example:
+`node index.js test '{"applet":{"user": {"symbol": "AAPL"}}}'`
+
+This will invoke the script at `index.js` , and the value of `this.config.symbol` will be `"AAPL"`.
+
+## Specifying a geometry:
+`node index.js test '{"applet":{"user": {"zoneId": "TXZ211"}}, "geometry": {"width": 4, "height": 1, "origin": {"x": 1, "y": 1}}}'`
+
+This example configures a `config.zoneId` of `"TXZ211"` and a geometry with `width: 4`, `height: 1`, origin of `(1,1)`.
+
+## Specifying authorization:
+`node index.js test '{"authorization": { "apiKey": "8f652e62a922ca351521ea0b89199de1067d3204" }}'`
+
+This example configures the applet such that `this.authorization.apiKey` has a valid value.
