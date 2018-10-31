@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/corykim/npm-qbuzz.git"
+    "url": "git+https://github.com/daskeyboard/daskeyboard-applet.git"
   },
   "keywords": [
     "Das",
@@ -19,9 +19,9 @@
   "author": "Cory Kim",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/corykim/npm-qbuzz/issues"
+    "url": "https://github.com/daskeyboard/daskeyboard-applet/issues"
   },
-  "homepage": "https://github.com/corykim/npm-qbuzz#readme",
+  "homepage": "https://github.com/daskeyboard/daskeyboard-applet#readme",
   "dependencies": {
     "moment": "^2.22.2",
     "node-storage": "^0.0.7",
