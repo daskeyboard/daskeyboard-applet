@@ -36,7 +36,9 @@ const myExample = new QExample();
 ## Constructor
 - If you need to create a `constructor()` method, please be sure to invoke 
   `super()` to initialize some important variables and signal handlers.
-- Do not use the constructor for any functionality or state that is related to the applet's configuration. The configuration may change as the applet is running. To update the applet's state based on configuration, extend the `applyConfig()` method.
+- Do not use the constructor for any functionality or state that is related to 
+  the applet's configuration. The configuration may change as the applet is 
+  running. To update the applet's state based on configuration, extend the `applyConfig()` method.
 
 ## run()
 - The `run()` method is your primary extension point. This method will be
@@ -50,7 +52,9 @@ const myExample = new QExample();
   `shutdown()` function. This function is invoked by a signal handler.
 
 ## applyConfig()
-- The applet will process any configuration, at launch and whenever a configuration change is sent, with a method `processConfig({*})`. If your applet's state needs to change based on the new configuration, implement `applyConfig()`. The applet's `this.config` object will have been updated to reflect the new configuration.
+- The applet will process any configuration, at launch and whenever a 
+  configuration change is sent, with a method `processConfig({*})`. If your 
+  applet's state needs to change based on the new configuration, implement `applyConfig()`. The applet's `this.config` object will have been updated to reflect the new configuration.
 
 
 # Creating Signals
@@ -142,15 +146,40 @@ Currently we support authorization by API Key or Basic Authentication. The autho
 ```
 
 ## this.config
-The config object is for any values that are specific to the application. This object is built by merging the default configuration values that are supplied in `package.json` with any user-supplied values that were input during applet installation.
+The config object is for any values that are specific to the application. This 
+object is built by merging the default configuration values that are supplied 
+in `package.json` with any user-supplied values that were input during applet 
+installation.
 
+## this.store
+The `store` object is an instance of [node-storage](https://www.npmjs.com/package/node-storage). When running within the Q Desktop 
+App, the storage file is located in the `~/.quio` directory. When running from
+a command line, a file `local-storage.json` will be created. You should not
+commit a `local-storage.json` file to the repo, because it will be ignored
+unless running from a command line.
+
+# Logging
+Applets use the [winston](https://github.com/winstonjs/winston) logging system.
+Log files can be found in `~/.quio/v2/applet.log.json`. When running from a 
+command line, logging will output to the console.
+
+To access the logger, you can invoke:
+```
+const q = require('daskeyboard-applet');
+const logger = q.logger;
+
+logger.info('This is an info');
+logger.warn('This is a warn');
+logger.error('This is an error.');
+```
 
 # Testing an Applet
 You can run an applet in test mode by invoking it via node, using the following syntax:
 
 `node <script name> test '{ <config> }'`
 
-The config object is a combination of all of the configuration variables described in Applet Configuration. The format of the config object is:
+The config object is a combination of all of the configuration variables 
+described in Applet Configuration. The format of the config object is:
 
 ```
 {
@@ -174,20 +203,25 @@ The config object is a combination of all of the configuration variables describ
   }
 }
 ```
-- Remember that this is a command-line parameter, so you need to either ensure the entire config is entered on one line, or use line separators `\`.
-- If you don't specify the geometry, the default is a 1x1 applet on the `Esc` key.
+- Remember that this is a command-line parameter, so you need to either ensure 
+  the entire config is entered on one line, or use line separators `\`.
+- If you don't specify the geometry, the default is a 1x1 applet on the `Esc` 
+  key.
 
 ## Basic example:
 `node index.js test '{"applet":{"user": {"symbol": "AAPL"}}}'`
 
-This will invoke the script at `index.js` , and the value of `this.config.symbol` will be `"AAPL"`.
+This will invoke the script at `index.js` , and the value of 
+`this.config.symbol` will be `"AAPL"`.
 
 ## Specifying a geometry:
 `node index.js test '{"applet":{"user": {"zoneId": "TXZ211"}}, "geometry": {"width": 4, "height": 1, "origin": {"x": 1, "y": 1}}}'`
 
-This example configures a `config.zoneId` of `"TXZ211"` and a geometry with `width: 4`, `height: 1`, origin of `(1,1)`.
+This example configures a `config.zoneId` of `"TXZ211"` and a geometry with 
+`width: 4`, `height: 1`, origin of `(1,1)`.
 
 ## Specifying authorization:
 `node index.js test '{"authorization": { "apiKey": "8f652e62a922ca351521ea0b89199de1067d3204" }}'`
 
-This example configures the applet such that `this.authorization.apiKey` has a valid value.
+This example configures the applet such that `this.authorization.apiKey` has a 
+valid value.

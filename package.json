@@ -1,6 +1,6 @@
 {
   "name": "daskeyboard-applet",
-  "version": "2.7.8",
+  "version": "2.7.9",
   "description": "A library for handling signals and events in Das Keyboard Q Cloud",
   "main": "index.js",
   "scripts": {
