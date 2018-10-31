@@ -179,10 +179,10 @@ logger.error('This is an error.');
 ```
 
 # Testing an Applet
-You can run an applet in test mode by invoking it via node, using the following
+You can run an applet in dev mode by invoking it via node, using the following
 syntax:
 
-`node <script name> test '{ <config> }'`
+`node <script name> dev '{ <config> }'`
 
 The config object is a combination of all of the configuration variables 
 described in Applet Configuration. The format of the config object is:
@@ -213,6 +213,8 @@ described in Applet Configuration. The format of the config object is:
   the entire config is entered on one line, or use line separators `\`.
 - If you don't specify the geometry, the default is a 1x1 applet on the `Esc` 
   key.
+- You must have the Q Desktop application running in order for the keyboard to
+  respond to any signals.
 
 ## Basic example:
 `node index.js test '{"applet":{"user": {"symbol": "AAPL"}}}'`

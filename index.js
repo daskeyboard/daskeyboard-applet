@@ -464,7 +464,7 @@ function readConfig() {
     try {
       const arg3 = process.argv[2];
       let config;
-      if (arg3.toUpperCase() === 'TEST') {
+      if (arg3.toUpperCase() === 'DEV') {
         logger.info("Configuring in test mode...");
         if (process.argv.length > 3 && process.argv[3].startsWith('{')) {
           config = JSON.parse(process.argv[3]);
