@@ -58,6 +58,11 @@ describe('QDesktopApplet', function () {
       });
     })
   });
+  describe('#flash()', function () {
+    it('should flash', function () {
+      assert.ok(test.handleFlash());
+    })
+  });
   describe('#getWidth()', function () {
     it('should know its width', function () {
       assert.ok(test.getWidth());

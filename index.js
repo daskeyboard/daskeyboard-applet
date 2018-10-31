@@ -359,7 +359,7 @@ class QDesktopApp {
     });
 
     logger.info("Flashing with signal: " + JSON.stringify(signal));
-    return this.sendLocal(signal);
+    return this.signal(signal);
   }
 }
 
