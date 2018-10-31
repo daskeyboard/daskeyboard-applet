@@ -38,7 +38,8 @@ const myExample = new QExample();
   `super()` to initialize some important variables and signal handlers.
 - Do not use the constructor for any functionality or state that is related to 
   the applet's configuration. The configuration may change as the applet is 
-  running. To update the applet's state based on configuration, extend the `applyConfig()` method.
+  running. To update the applet's state based on configuration, extend the 
+  `applyConfig()` method.
 
 ## run()
 - The `run()` method is your primary extension point. This method will be
@@ -54,7 +55,9 @@ const myExample = new QExample();
 ## applyConfig()
 - The applet will process any configuration, at launch and whenever a 
   configuration change is sent, with a method `processConfig({*})`. If your 
-  applet's state needs to change based on the new configuration, implement `applyConfig()`. The applet's `this.config` object will have been updated to reflect the new configuration.
+  applet's state needs to change based on the new configuration, implement 
+  `applyConfig()`. The applet's `this.config` object will have been updated to 
+  reflect the new configuration.
 
 
 # Creating Signals
@@ -135,7 +138,8 @@ You can also inspect the applet's geometry with the functions:
 - `this.getOriginY()`
 
 ## this.authorization
-Currently we support authorization by API Key or Basic Authentication. The authorization object looks like:
+Currently we support authorization by API Key or Basic Authentication. The 
+authorization object looks like:
 
 ```
 {
@@ -152,11 +156,12 @@ in `package.json` with any user-supplied values that were input during applet
 installation.
 
 ## this.store
-The `store` object is an instance of [node-storage](https://www.npmjs.com/package/node-storage). When running within the Q Desktop 
-App, the storage file is located in the `~/.quio` directory. When running from
-a command line, a file `local-storage.json` will be created. You should not
-commit a `local-storage.json` file to the repo, because it will be ignored
-unless running from a command line.
+The `store` object is an instance of 
+[node-storage](https://www.npmjs.com/package/node-storage). When running within 
+the Q Desktop App, the storage file is located in the `~/.quio` directory. When
+running from a command line, a file `local-storage.json` will be created. You 
+should not commit a `local-storage.json` file to the repo, because it will be 
+ignored unless running from a command line.
 
 # Logging
 Applets use the [winston](https://github.com/winstonjs/winston) logging system.
@@ -174,7 +179,8 @@ logger.error('This is an error.');
 ```
 
 # Testing an Applet
-You can run an applet in test mode by invoking it via node, using the following syntax:
+You can run an applet in test mode by invoking it via node, using the following
+syntax:
 
 `node <script name> test '{ <config> }'`
 
@@ -225,3 +231,24 @@ This example configures a `config.zoneId` of `"TXZ211"` and a geometry with
 
 This example configures the applet such that `this.authorization.apiKey` has a 
 valid value.
+
+# Factory Reset
+You can remove all applets and associated files using one of two ways:
+## Reset via the command line
+- Quit the Q Desktop App
+- Run the following commands: 
+  ```
+  rm -rf ~/.quio/v2/q_extensions
+  rm -rf ~/.quio/v2/q_storage
+  ```
+- Restart the Q Desktop App
+
+## Reset using a POST
+Using `curl` you can remove all applets with the command:
+```
+curl -X POST \
+  http://localhost:27302/reset \
+  -H 'Cache-Control: no-cache' \
+  -H 'Postman-Token: 0a88b369-1c86-4374-a111-f6ac99344ea9'
+```
+  
