@@ -155,6 +155,12 @@ class QDesktopApp {
           this.paused = true;
           break;
         }
+      case 'POLL':
+        {
+          logger.info("Got POLL");
+          this.poll(true);
+          break;
+        }
       case 'START':
         {
           logger.info("Got START");
@@ -284,11 +290,12 @@ class QDesktopApp {
   /**
    * Schedules the run() function at regular intervals. Currently set to a 
    * constant value, but may become dynamic in the future.
+   * @param {boolean} force Forces a poll even if paused or busy
    */
-  poll() {
-    if (this.paused) {
+  poll(force) {
+    if (!force && this.paused) {
       // no-op, we are paused
-    } else if (this.pollingBusy) {
+    } else if (!force && this.pollingBusy) {
       logger.info("Skipping run because we are still busy.");
     } else {
       this.pollingBusy = true;
