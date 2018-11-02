@@ -79,7 +79,8 @@ class QDesktopApp {
       this.configured = true;
       return true;
     } catch (error) {
-      throw new Error("Error while running applyConfig() against instance", error);
+      logger.error("Error while running applyConfig() against instance" + error);
+      throw error;
     }
   }
 
