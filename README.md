@@ -178,7 +178,7 @@ logger.warn('This is a warn');
 logger.error('This is an error.');
 ```
 
-# Running an Appletin dev mode
+# Running an Applet in dev mode
 You can run an applet in `dev mode` by invoking it via node, using the following
 syntax:
 
