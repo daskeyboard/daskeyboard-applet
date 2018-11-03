@@ -178,8 +178,8 @@ logger.warn('This is a warn');
 logger.error('This is an error.');
 ```
 
-# Testing an Applet
-You can run an applet in dev mode by invoking it via node, using the following
+# Running an Appletin dev mode
+You can run an applet in `dev mode` by invoking it via node, using the following
 syntax:
 
 `node <script name> dev '{ <config> }'`
@@ -217,19 +217,19 @@ described in Applet Configuration. The format of the config object is:
   respond to any signals.
 
 ## Basic example:
-`node index.js test '{"applet":{"user": {"symbol": "AAPL"}}}'`
+`node index.js dev '{"applet":{"user": {"symbol": "AAPL"}}}'`
 
 This will invoke the script at `index.js` , and the value of 
 `this.config.symbol` will be `"AAPL"`.
 
 ## Specifying a geometry:
-`node index.js test '{"applet":{"user": {"zoneId": "TXZ211"}}, "geometry": {"width": 4, "height": 1, "origin": {"x": 1, "y": 1}}}'`
+`node index.js dev '{"applet":{"user": {"zoneId": "TXZ211"}}, "geometry": {"width": 4, "height": 1, "origin": {"x": 1, "y": 1}}}'`
 
 This example configures a `config.zoneId` of `"TXZ211"` and a geometry with 
 `width: 4`, `height: 1`, origin of `(1,1)`.
 
 ## Specifying authorization:
-`node index.js test '{"authorization": { "apiKey": "8f652e62a922ca351521ea0b89199de1067d3204" }}'`
+`node index.js dev '{"authorization": { "apiKey": "8f652e62a922ca351521ea0b89199de1067d3204" }}'`
 
 This example configures the applet such that `this.authorization.apiKey` has a 
 valid value.
