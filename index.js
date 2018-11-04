@@ -6,7 +6,7 @@ const signalHeaders = {
   "Content-Type": "application/json"
 }
 
-const defaultPollingInterval = 60000;
+const defaultPollingInterval = 60000; // millisec.
 
 /**
  * The base class for apps that run on the Q Desktop
