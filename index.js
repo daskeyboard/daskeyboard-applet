@@ -36,8 +36,8 @@ class QDesktopApp {
     }
     logger.info("Constructor finished.");
 
-    if (this.testMode) {
-      logger.info("Starting in test mode...");
+    if (this.devMode) {
+      logger.info("Starting in dev mode...");
       this.start();
     }
   }
@@ -57,8 +57,8 @@ class QDesktopApp {
 
     this.authorization = Object.freeze(this.rootConfig.authorization || {});
     const geometry = this.rootConfig.geometry || {};
-    this.testMode = this.rootConfig.testMode;
-    if (this.testMode) {
+    this.devMode = this.rootConfig.devMode;
+    if (this.devMode) {
       // set up default geometries
       geometry.height = geometry.height || 1;
       geometry.width = geometry.width || 1;
@@ -473,16 +473,16 @@ function readConfig() {
       const arg3 = process.argv[2];
       let config;
       if (arg3.toUpperCase() === 'DEV') {
-        logger.info("Configuring in test mode...");
+        logger.info("Configuring in dev mode...");
         if (process.argv.length > 3 && process.argv[3].startsWith('{')) {
           config = JSON.parse(process.argv[3]);
-          logger.info("Parsed test config as: " + JSON.stringify(config));
+          logger.info("Parsed dev config as: " + JSON.stringify(config));
         } else {
-          logger.info("Generating minimal test config.");
+          logger.info("Generating minimal dev config.");
           config = {};
         }
-        logger.info("Generated test configuration: ", config);
-        config.testMode = true;
+        logger.info("Generated dev configuration: ", config);
+        config.devMode = true;
       } else {
         config = JSON.parse(arg3);
       }
