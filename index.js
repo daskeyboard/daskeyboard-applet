@@ -310,7 +310,7 @@ class QDesktopApp {
       }).catch((error) => {
         this.errorState = error;
         logger.error(
-          "Applet encountered an uncaught error in its main loop", error);
+          "Applet encountered an uncaught error in its main loop" + error);
         this.pollingBusy = false;
       });
     }
