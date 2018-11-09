@@ -31,7 +31,7 @@ describe('QDesktopSignal', function () {
 describe('QDesktopApplet', function () {
   let test = new TestApplet();
   test.processConfig({
-    testMode: true
+    devMode: true
   });
 
   let geometryTest = new TestApplet();
