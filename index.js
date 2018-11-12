@@ -2,6 +2,8 @@ const request = require('request-promise');
 const Storage = require('node-storage');
 const logger = require('./lib/logger');
 const utility = require('./lib/utility');
+const oAuth2ProxyUri = process.env.oAuth2ProxyUri ||
+  applicationConfig.oAuth2ProxyUriDefault;
 
 const {
   QDesktopSignal,
@@ -28,8 +30,7 @@ class QDesktopApp {
     this.paused = false;
     this.configured = false;
     
-    this.oAuth2ProxyUri = process.env.oAuth2ProxyUri ||
-      applicationConfig.oAuth2ProxyUriDefault;
+    this.oAuth2ProxyUri = oAuth2ProxyUri;
 
     process.on('SIGINT', (message) => {
       logger.info("Got SIGINT, handling shutdown...");
