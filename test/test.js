@@ -47,6 +47,10 @@ describe('QDesktopApplet', function () {
   describe('#constructor()', function () {
     it('should return a valid instance', function () {
       assert.equal(test.foo, 'bar');
+    });
+
+    it('should have a oAuth2ProxyUri', function() {
+      assert.ok(test.oAuth2ProxyUri);
     })
   });
   describe('#run()', function () {

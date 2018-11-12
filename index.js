@@ -2,11 +2,23 @@ const request = require('request-promise');
 const Storage = require('node-storage');
 const logger = require('./lib/logger');
 const utility = require('./lib/utility');
+
+const {
+  QDesktopSignal,
+  QPoint,
+  Effects
+} = require('./lib/q-signal.js');
+
+const applicationConfig = require('./application.json');
+
 const signalHeaders = {
   "Content-Type": "application/json"
 }
 
 const defaultPollingInterval = 60000; // millisec.
+const backendUrl = applicationConfig.desktopBackendUrl;
+const signalEndpoint = backendUrl + '/api/2.0/signals';
+
 
 /**
  * The base class for apps that run on the Q Desktop
@@ -14,7 +26,10 @@ const defaultPollingInterval = 60000; // millisec.
 class QDesktopApp {
   constructor() {
     this.paused = false;
-    this.configured = false;    
+    this.configured = false;
+    
+    this.oAuth2ProxyUri = process.env.oAuth2ProxyUri ||
+      applicationConfig.oAuth2ProxyUriDefault;
 
     process.on('SIGINT', (message) => {
       logger.info("Got SIGINT, handling shutdown...");
@@ -235,8 +250,8 @@ class QDesktopApp {
         json: true,
         resolveWithFullResponse: true
       }).then(function (response) {
-        logger.info('Signal service responded with status: ' 
-          + response.statusCode);
+        logger.info('Signal service responded with status: ' +
+          response.statusCode);
         return response;
       }).catch(function (err) {
         const error = err.error;
@@ -262,30 +277,12 @@ class QDesktopApp {
     }
 
     return this.signal(new QDesktopSignal({
-      points: [[]],
+      points: [
+        []
+      ],
       errors: messages,
       action: 'ERROR',
     }));
-  }
-
-  /**
-   * The entry point for the app. Currently only launches the polling function,
-   * but may do other setup items later.
-   */
-  start() {
-    this.paused = false;
-    if (!this.configured) {
-      logger.info("Waiting for configuration to complete.");
-      setTimeout(() => {
-        this.start();
-      }, 1000);
-    } else {
-      this.poll();
-
-      setInterval(() => {
-        this.poll();
-      }, this.pollingInterval);
-    }
   }
 
   /**
@@ -316,6 +313,25 @@ class QDesktopApp {
     }
   }
 
+  /**
+   * The entry point for the app. Currently only launches the polling function,
+   * but may do other setup items later.
+   */
+  start() {
+    this.paused = false;
+    if (!this.configured) {
+      logger.info("Waiting for configuration to complete.");
+      setTimeout(() => {
+        this.start();
+      }, 1000);
+    } else {
+      this.poll();
+
+      setInterval(() => {
+        this.poll();
+      }, this.pollingInterval);
+    }
+  }
 
   /**
    * This method is called once each polling interval. This is where most
@@ -369,7 +385,7 @@ class QDesktopApp {
   getOriginX() {
     return this.geometry.origin.x;
   }
-  
+
   /**
    * Get the applet's configured Y origin.
    * @returns the Y origin
@@ -400,66 +416,48 @@ class QDesktopApp {
     logger.info("Flashing with signal: " + JSON.stringify(signal));
     return this.signal(signal);
   }
-}
 
 
-/**
- * Class representing a single point to be sent to the device
- * @param {string} color - The hexadecimal RGB color to activate, e.g. '#FFCCDD'
- * @param {string} effect - The effect to activate. Enumerated in Effects. 
- *   Default is empty.
- */
-class QPoint {
-  constructor(color, effect = Effects.SET_COLOR) {
-    this.color = color;
-    this.effect = effect;
-  }
-}
-
-class QDesktopSignal {
   /**
-   * 
-   * @param {QPoint[][]} points A 2D array of QPoints expressing the signal
-   * @param {*} options A JSON list of options
+   * Send a request through an OAuth2 Proxy to protect client key and secret
+   * @param {*} proxyRequest 
    */
-  constructor({
-    points = [
-      []
-    ],
-    name = 'Q Desktop Signal',
-    message = '',
-    isMuted = true,
-    action = 'DRAW',
-    errors = [],
-  }) {
-    this.points = points;
-    this.action = action;
-    this.name = name;
-    this.message = message;
-    this.isMuted = isMuted;
-    this.extensionId = null;
-    this.errors = errors;
+  async oauth2ProxyRequest(proxyRequest) {
+    const options = {
+      method: 'POST',
+      uri: oAuth2ProxyUri,
+      body: proxyRequest,
+      json: true
+    };
+
+    logger.info("Proxying OAuth2 request with options: "
+      + JSON.stringify(options));
+
+    return request(options).catch((error) => {
+      logger.error("Error while sending proxy request: " + error);
+      throw new Error("Error retrieving email.");
+    });
   }
 }
 
-
 /**
- * An enumeration of effects
+ * A request to be proxied via an Oauth2 Proxy
  */
-const Effects = Object.freeze({
-  'SET_COLOR': 'SET_COLOR',
-  'BLINK': 'BLINK',
-  'BREATHE': 'BREATHE',
-  'COLOR_CYCLE': 'COLOR_CYCLE',
-  'RIPPLE': 'RIPPLE',
-  'INWARD_RIPPLE': 'INWARD_RIPPLE',
-  'BOUNCING_LIGHT': 'BOUNCING_LIGHT',
-  'LASER': 'LASER',
-  'WAVE': 'WAVE'
-});
-
-const backendUrl = 'http://localhost:27301';
-const signalEndpoint = backendUrl + '/api/2.0/signals';
+class Oauth2ProxyRequest {
+  constructor({
+    apiKey,
+    uri,
+    method = 'GET',
+    contentType = 'application/json',
+    body = null
+  }) {
+    this.apiKey = apiKey;
+    this.uri = uri;
+    this.method = method;
+    this.contentType = contentType
+    this.body = body;
+  }
+}
 
 
 /**
@@ -510,8 +508,10 @@ function minimalConfig(config = {}) {
 
 
 module.exports = {
+  hostConfig: applicationConfig,
   logger: logger,
   DesktopApp: QDesktopApp,
+  Oauth2ProxyRequest: Oauth2ProxyRequest,
   Point: QPoint,
   Signal: QDesktopSignal,
   Effects: Effects
