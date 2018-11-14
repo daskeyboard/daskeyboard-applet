@@ -28,9 +28,9 @@ describe('QDesktopSignal', function () {
   })
 });
 
-describe('QDesktopApplet', function () {
+describe('QDesktopApplet', async function () {
   let test = new TestApplet();
-  test.processConfig({
+  await test.processConfig({
     devMode: true
   });
 
@@ -55,16 +55,17 @@ describe('QDesktopApplet', function () {
   });
   describe('#run()', function () {
     it('should be able to run', function () {
-      test.run().then((signal) => {
+      return test.run().then((signal) => {
         console.log("Got signal: " + JSON.stringify(signal));
         assert.ok(signal, 'Did not return a truthy signal.');
         assert(signal.points.length === 1, 'Signal did not return the correct number of points.');
-      });
+      }).catch(error => assert.fail(error));
     })
   });
   describe('#flash()', function () {
     it('should flash', function () {
-      assert.ok(test.handleFlash());
+      return test.handleFlash().then(result => assert.ok(result))
+      .catch(error => assert.fail(error));
     })
   });
   describe('#getWidth()', function () {
@@ -93,20 +94,20 @@ describe('QDesktopApplet', function () {
   });
   describe('#signal()', function () {
     it('should signal', function () {
-      test.signal(new q.Signal({
+      return test.signal(new q.Signal({
         points: [
           [new q.Point('#00FF00')]
         ]
       })).then(result => {
         assert.ok(result);
-      });
+      }).catch(error => assert.fail(error));
     })
   });
   describe('#signalError()', function () {
     it('should signalError', function () {
-      test.signalError(['foo', 'bar']).then(result => {
+      return test.signalError(['foo', 'bar']).then(result => {
         assert.ok(result);
-      });
+      }).catch(error => assert.fail(error));
     })
   });
 });
