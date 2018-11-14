@@ -1,5 +1,5 @@
 const request = require('request-promise');
-const Storage = require('node-storage');
+const { Storage } = require('./lib/storage');
 const logger = require('./lib/logger');
 const utility = require('./lib/utility');
 const oAuth2ProxyUri = process.env.oAuth2ProxyUri ||
