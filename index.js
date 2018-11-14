@@ -87,7 +87,7 @@ class QDesktopApp {
     this.geometry = Object.freeze(geometry);
 
 
-    let storageLocation = this.rootConfig.storageLocation || 'local-storage.json';
+    let storageLocation = this.rootConfig.storageLocation || 'local-storage';
     this.store = new Storage(storageLocation);
 
     try {
