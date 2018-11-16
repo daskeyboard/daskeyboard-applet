@@ -2,6 +2,8 @@ const request = require('request-promise');
 const { Storage } = require('./lib/storage');
 const logger = require('./lib/logger');
 const utility = require('./lib/utility');
+const applicationConfig = require('./application.json');
+
 const oAuth2ProxyUri = process.env.oAuth2ProxyUri ||
   applicationConfig.oAuth2ProxyUriDefault;
 
@@ -11,7 +13,6 @@ const {
   Effects
 } = require('./lib/q-signal.js');
 
-const applicationConfig = require('./application.json');
 
 const signalHeaders = {
   "Content-Type": "application/json"
