@@ -94,6 +94,21 @@ To light up a rectangular region, send multiple rows of points, e.g:
       ]});
 ```
 
+## Signal options
+The `Signal` class takes the following options in its constructor:
+
+- `points`: A 2-D array of `Point` objects.
+- `name`: Will be displayed as the title of any signal dialog.
+- `message`: Detailed message that will be displayed within a signal dialog.
+- `isMuted`: Boolean value. If set to `false`, the signal will invoke an on-screen notification.
+- `action`: The action of the signal, typically `DRAW`. This is the default. Possible values are:
+  - `DRAW`: Light a key until the signal is dismissed.
+  - `ERROR`: The signal will relay an error message to the host service.
+  - `FLASH`: The signal will cause the key(s) to flash.
+- `errors`: In the case of an `ERROR` action, `errors` should contain an
+  array of error messages.
+
+
 ## Creating a signal within a callback function
 There are cases when your `run()` function may have to use a callback, and so
 cannot directly pass a `Signal` object as its return. In this case, you can
