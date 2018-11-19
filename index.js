@@ -262,9 +262,7 @@ class QDesktopApp {
             ` the Das Keyboard Q software  is running`);
         } else {
           logger.error('Error sending signal ', error);
-        }
-
-        throw error;
+        }        
       });
     }
   }
