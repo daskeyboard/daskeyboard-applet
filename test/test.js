@@ -20,10 +20,24 @@ class TestApplet extends q.DesktopApp {
 describe('QDesktopSignal', function () {
   describe('#constructor()', function () {
     it('should return a valid instance', function () {
-      let signal = new q.Signal([
-        [new q.Point('#FFFFFF')]
-      ]);
+      let signal = new q.Signal({
+        points: [[new q.Point('#FFFFFF')]]
+      });
       assert.equal(signal.points.length, 1);
+    });
+
+    it('should hold a data attribute', function() {
+      let signal = new q.Signal({
+        points: [[new q.Point('#FFFFFF')]],
+        data: {
+          action: {
+            url: 'http://foo.bar',
+            label: 'Adjust your things'
+          }
+        }
+      });
+      assert.ok(signal.data.action.url);
+      assert.ok(signal.data.action.label);
     })
   })
 });

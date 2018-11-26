@@ -235,12 +235,13 @@ class QDesktopApp {
       const body = {
         action: signal.action,
         actionValue: JSON.stringify(actionValue),
-        pid: "Q_MATRIX",
+        clientName: this.extensionId,
+        data: signal.data,
+        errors: signal.errors,
+        isMuted: signal.isMuted,
         message: signal.message,
         name: signal.name,
-        isMuted: signal.isMuted,
-        clientName: this.extensionId,
-        errors: signal.errors,
+        pid: "Q_MATRIX",
       }
 
       logger.info("Posting to local service:" + JSON.stringify(body));
