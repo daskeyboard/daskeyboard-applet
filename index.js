@@ -51,7 +51,7 @@ class QDesktopApp {
     } catch (error) {
       throw new Error("Error while processing config.", error);
     }
-    logger.info("Constructor finished.");
+    logger.debug("Constructor finished.");
 
     if (this.devMode) {
       logger.info("Starting in dev mode...");
@@ -67,7 +67,7 @@ class QDesktopApp {
   async processConfig(config) {
     this.configured = false;
     this.rootConfig = Object.freeze(minimalConfig(config ? config : readConfig()));
-    logger.info("Constructing app with ROOT config: " + JSON.stringify(this.rootConfig));
+    logger.debug("Constructing app with ROOT config: " + JSON.stringify(this.rootConfig));
 
     this.extensionId = this.rootConfig.extensionId;
     this.config = Object.freeze(utility.mergeDeep({}, this.rootConfig.applet.defaults || {}, this.rootConfig.applet.user || {}));
@@ -466,7 +466,7 @@ class Oauth2ProxyRequest {
  * argument should be a JSON string.
  */
 function readConfig() {
-  logger.info(`I have ${process.argv.length} arguments: ` + JSON.stringify(process.argv));
+  logger.debug(`I have ${process.argv.length} arguments: ` + JSON.stringify(process.argv));
   if (process.argv.length > 2) {
     try {
       const arg3 = process.argv[2];
