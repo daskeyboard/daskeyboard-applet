@@ -154,7 +154,7 @@ class QDesktopApp {
       case 'OPTIONS':
         {
           logger.info("CHILD Handling " + type);
-          this.options(data.fieldName).then(options => {
+          this.options(data.fieldName, data.search).then(options => {
             logger.info("CHILD returned options.");
             const response = {
               status: 'success',
@@ -357,10 +357,11 @@ class QDesktopApp {
    * Given an (optional) fieldName, return the valid options for that field
    * name. This is used to generate a UI to allow the user to configure the
    * applet. If the applet only has one option, you can ignore the fieldName.
-   * @param {string} fieldName 
+   * @param {string} fieldName the field for which options are being requested
+   * @param {string} search search terms, if any 
    * @returns {Object} an array of [{id, value} objects]
    */
-  async options(fieldName) {
+  async options(fieldName, search) {
     return null;
   }
 
