@@ -450,17 +450,20 @@ class Oauth2ProxyRequest {
   constructor({
     apiKey,
     uri,
+    qs,
     method = 'GET',
     contentType = 'application/json',
     body = null
   }) {
     this.apiKey = apiKey;
     this.uri = uri;
+    this.qs = qs;
     this.method = method;
     this.contentType = contentType
     this.body = body;
   }
 }
+
 
 
 /**
