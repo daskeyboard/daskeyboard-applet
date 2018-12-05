@@ -111,7 +111,11 @@ describe('QDesktopApplet', async function () {
       return test.signal(new q.Signal({
         points: [
           [new q.Point('#00FF00')]
-        ]
+        ],
+        link: {
+          url: 'http://foo.bar',
+          label: 'Click here.',
+        }
       })).then(result => {
         assert.ok(result);
       }).catch(error => assert.fail(error));

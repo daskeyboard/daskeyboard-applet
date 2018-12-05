@@ -237,6 +237,7 @@ class QDesktopApp {
         actionValue: JSON.stringify(actionValue),
         clientName: this.extensionId,
         data: signal.data,
+        link: signal.link,
         errors: signal.errors,
         isMuted: signal.isMuted,
         message: signal.message,
