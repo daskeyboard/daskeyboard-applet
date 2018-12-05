@@ -135,17 +135,21 @@ describe('QDesktopApplet', async function () {
   describe('#processConfig()', function () {
     it('should gracefully handle an empty config', async function () {
       let test = new TestApplet();
-      test.processConfig({}).then(() => {
+      return test.processConfig({}).then(() => {
         assert.ok(test);
         assert.ok(test.config);
         assert.ok(test.geometry);
+        assert.ok(test.geometry.height);
+        assert.ok(test.geometry.width);
+        assert.notEqual(null, test.geometry.origin.x);
+        assert.notEqual(null, test.geometry.origin.y);
         assert.ok(test.authorization);
       });
     });
 
     it('should gracefully handle null config', async function () {
       let test = new TestApplet();
-      test.processConfig(null).then(() => {
+      return test.processConfig(null).then(() => {
         assert.ok(test);
         assert.ok(test.config);
         assert.ok(test.geometry);
@@ -155,7 +159,7 @@ describe('QDesktopApplet', async function () {
 
     it('should gracefully handle no config', async function () {
       let test = new TestApplet();
-      test.processConfig().then(() => {
+      return test.processConfig().then(() => {
         assert.ok(test);
         assert.ok(test.config);
         assert.ok(test.geometry);

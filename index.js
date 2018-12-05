@@ -69,23 +69,21 @@ class QDesktopApp {
     this.rootConfig = Object.freeze(minimalConfig(config ? config : readConfig()));
     logger.debug("Constructing app with ROOT config: " + JSON.stringify(this.rootConfig));
 
+    this.devMode = this.rootConfig.devMode;
+
     this.extensionId = this.rootConfig.extensionId;
     const applet = this.rootConfig.applet || {};
     this.config = Object.freeze(utility.mergeDeep({}, applet.defaults || {}, applet.user || {}));
 
     this.authorization = Object.freeze(this.rootConfig.authorization || {});
-    const geometry = this.rootConfig.geometry || {};
-    this.devMode = this.rootConfig.devMode;
-    if (this.devMode) {
-      // set up default geometries
-      geometry.height = geometry.height || 1;
-      geometry.width = geometry.width || 1;
-      geometry.origin = geometry.origin || {
+    const geometry = this.rootConfig.geometry || {
+      height: 1,
+      width: 1,
+      origin: {
         x: 1,
-        y: 0
-      };
-
-    }
+        y: 0,
+      }
+    };
     this.geometry = Object.freeze(geometry);
 
 
