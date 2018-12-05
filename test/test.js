@@ -21,14 +21,18 @@ describe('QDesktopSignal', function () {
   describe('#constructor()', function () {
     it('should return a valid instance', function () {
       let signal = new q.Signal({
-        points: [[new q.Point('#FFFFFF')]]
+        points: [
+          [new q.Point('#FFFFFF')]
+        ]
       });
       assert.equal(signal.points.length, 1);
     });
 
-    it('should hold a data attribute', function() {
+    it('should hold a data attribute', function () {
       let signal = new q.Signal({
-        points: [[new q.Point('#FFFFFF')]],
+        points: [
+          [new q.Point('#FFFFFF')]
+        ],
         data: {
           action: {
             url: 'http://foo.bar',
@@ -63,7 +67,7 @@ describe('QDesktopApplet', async function () {
       assert.equal(test.foo, 'bar');
     });
 
-    it('should have a oAuth2ProxyUri', function() {
+    it('should have a oAuth2ProxyUri', function () {
       assert.ok(test.oAuth2ProxyUri);
     })
   });
@@ -79,7 +83,7 @@ describe('QDesktopApplet', async function () {
   describe('#flash()', function () {
     it('should flash', function () {
       return test.handleFlash().then(result => assert.ok(result))
-      .catch(error => assert.fail(error));
+        .catch(error => assert.fail(error));
     })
   });
   describe('#getWidth()', function () {
@@ -128,4 +132,35 @@ describe('QDesktopApplet', async function () {
       }).catch(error => assert.fail(error));
     })
   });
+  describe('#processConfig()', function () {
+    it('should gracefully handle an empty config', async function () {
+      let test = new TestApplet();
+      test.processConfig({}).then(() => {
+        assert.ok(test);
+        assert.ok(test.config);
+        assert.ok(test.geometry);
+        assert.ok(test.authorization);
+      });
+    });
+
+    it('should gracefully handle null config', async function () {
+      let test = new TestApplet();
+      test.processConfig(null).then(() => {
+        assert.ok(test);
+        assert.ok(test.config);
+        assert.ok(test.geometry);
+        assert.ok(test.authorization);
+      });
+    })
+
+    it('should gracefully handle no config', async function () {
+      let test = new TestApplet();
+      test.processConfig().then(() => {
+        assert.ok(test);
+        assert.ok(test.config);
+        assert.ok(test.geometry);
+        assert.ok(test.authorization);
+      });
+    })
+  })
 });

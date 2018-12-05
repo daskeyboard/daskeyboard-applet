@@ -70,7 +70,8 @@ class QDesktopApp {
     logger.debug("Constructing app with ROOT config: " + JSON.stringify(this.rootConfig));
 
     this.extensionId = this.rootConfig.extensionId;
-    this.config = Object.freeze(utility.mergeDeep({}, this.rootConfig.applet.defaults || {}, this.rootConfig.applet.user || {}));
+    const applet = this.rootConfig.applet || {};
+    this.config = Object.freeze(utility.mergeDeep({}, applet.defaults || {}, applet.user || {}));
 
     this.authorization = Object.freeze(this.rootConfig.authorization || {});
     const geometry = this.rootConfig.geometry || {};
