@@ -43,6 +43,12 @@ describe('QDesktopSignal', function () {
       assert.ok(signal.data.action.url);
       assert.ok(signal.data.action.label);
     })
+  });
+
+  it('should produce an error signal', function () {
+    const signal = new q.Signal.error('foo');
+    assert.ok(signal);
+    assert.equal('ERROR', signal.action);
   })
 });
 
@@ -165,6 +171,6 @@ describe('QDesktopApplet', async function () {
         assert.ok(test.geometry);
         assert.ok(test.authorization);
       });
-    })
+    });
   })
 });

@@ -273,17 +273,7 @@ class QDesktopApp {
    * @param {Array<string>} messages 
    */
   async signalError(messages) {
-    if (!Array.isArray(messages)) {
-      messages = [messages];
-    }
-
-    return this.signal(new QDesktopSignal({
-      points: [
-        []
-      ],
-      errors: messages,
-      action: 'ERROR',
-    }));
+    return QDesktopSignal.error(messages);
   }
 
   /**
