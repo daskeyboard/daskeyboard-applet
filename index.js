@@ -428,7 +428,7 @@ class QDesktopApp {
 
     return request(options).catch((error) => {
       logger.error("Error while sending proxy request: " + error);
-      throw new Error("Error retrieving email.");
+      throw new Error("Error while sending proxy request", error);
     });
   }
 }
