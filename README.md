@@ -52,12 +52,81 @@ const myExample = new QExample();
 - If you need to perform any work before the Applet is closed, implement the
   `shutdown()` function. This function is invoked by a signal handler.
 
+- If you throw an `Error` in this method, the extension host will transmit a 
+  signal to the Q Desktop with your error message in the body.
+    
+
 ## applyConfig()
 - The applet will process any configuration, at launch and whenever a 
   configuration change is sent, with a method `processConfig({*})`. If your 
   applet's state needs to change based on the new configuration, implement 
   `applyConfig()`. The applet's `this.config` object will have been updated to 
   reflect the new configuration.
+
+- During this phase, you can also validate input. If you receive an invalid
+  value, you can throw an `Error` that contains a message explaining the 
+  invalid input. *Important*: The Q Desktop application may invoke this method
+  before it has had a chance to receive configuration input from the user. In
+  this case, expected values may not yet exist. Do not throw an exception when
+  an expected value is missing, only when an expected value is defined but the
+  value is invalid.
+
+
+## options(fieldId, search)
+When you specify the questions in `package.json`, you have the ability to
+specify dynamic options in a dropdown or search control. An example is:
+
+```
+"questions": [
+      {
+        "key": "zoneId",
+        "label": "Choose a location",
+        "help": "select a location from the list",
+        "required": true,
+        "order": 1,
+        "controlType": "dropdown",
+        "dynamic": true,
+        "options": []
+      }
+    ]
+```
+
+In the above case, the extension host will invoke the method 
+`#options(fieldId)`, where `fieldId` is the name of the configuration property
+that is being shown, such as `#options('zoneid')`. You should respond with a 
+JSON data structure as follows:
+
+```
+[
+  {
+    "key": "the unique key for the option:",
+    "value": "the value to be displayed in the option list"
+  } ...
+]
+
+```
+
+An alternate case is where you would like the user to search for the possible
+values using a typeahead control. An example of this case follows:
+
+```
+    "questions": [
+      {
+        "key": "cityId",
+        "label": "Choose a city",
+        "help": "select a location from the list",
+        "required": true,
+        "order": 1,
+        "controlType": "search",
+        "options": []
+      },
+    ]
+```    
+
+When specifying `"controlType": "search"`, the extension host will invoke the
+method `#options(fieldId, search)`, where `search` is a string contain the
+user's search term(s).
+
 
 
 # Creating Signals
@@ -177,6 +246,7 @@ the Q Desktop App, the storage file is located in the `~/.quio` directory. When
 running from a command line, a file `local-storage.json` will be created. You 
 should not commit a `local-storage.json` file to the repo, because it will be 
 ignored unless running from a command line.
+
 
 # Logging
 Applets use the [winston](https://github.com/winstonjs/winston) logging system.
