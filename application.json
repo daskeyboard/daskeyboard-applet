@@ -1,4 +1,4 @@
 {
   "oAuth2ProxyUriDefault": "http://localhost:8094/thirdparty/proxy/oauth2/proxy",
-  "desktopBackendUrl": "http://localhost:27301"
+  "desktopBackendUrl": "http://127.0.0.1:27301"
 }
