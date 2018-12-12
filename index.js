@@ -368,7 +368,7 @@ class QDesktopApp {
       points.push(row);
     }
 
-    const signal = new QDesktopSignal({
+    const flash = new QDesktopSignal({
       points: points,
       action: 'FLASH',
       isMuted: false,
@@ -378,8 +378,8 @@ class QDesktopApp {
       },
     });
 
-    logger.info("Flashing with signal: " + JSON.stringify(signal));
-    return this.signal(signal);
+    logger.info("Flashing with signal: " + JSON.stringify(flash));
+    return QDesktopSignal.send(flash);
   }
 
 
