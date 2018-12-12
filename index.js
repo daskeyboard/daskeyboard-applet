@@ -29,10 +29,21 @@ class QDesktopApp {
     this.oAuth2ProxyUri = oAuth2ProxyUri;
     this.signalLog = [];
 
-    process.on('SIGINT', (message) => {
+    process.on('SIGINT', async (message) => {
       logger.info("Got SIGINT, handling shutdown...");
-      this.shutdown();
-      logger.info("Exiting the process.");
+      await this.shutdown();
+      process.exit();
+    })
+
+    process.on('disconnect', async (message) => {
+      logger.info("Got DISCONNECT, handling shutdown...");
+      await this.shutdown();
+      process.exit();
+    })
+
+    process.on('exit', async (message) => {
+      logger.info("Got EXIT, handling shutdown...");
+      await this.shutdown();
       process.exit();
     })
 
@@ -307,7 +318,7 @@ class QDesktopApp {
    * The extension point for any activities that should
    * take place before shutting down.
    */
-  shutdown() {
+  async shutdown() {
     return null;
   }
 
