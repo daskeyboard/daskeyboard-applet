@@ -20,7 +20,7 @@ class TestApplet extends q.DesktopApp {
 describe('QDesktopSignal', function () {
   describe('#constructor()', function () {
     it('should return a valid instance', function () {
-      let signal = new q.Signal({
+      const signal = new q.Signal({
         points: [
           [new q.Point('#FFFFFF')]
         ]
@@ -29,7 +29,7 @@ describe('QDesktopSignal', function () {
     });
 
     it('should hold a data attribute', function () {
-      let signal = new q.Signal({
+      const signal = new q.Signal({
         points: [
           [new q.Point('#FFFFFF')]
         ],
@@ -46,10 +46,39 @@ describe('QDesktopSignal', function () {
   });
 
   it('should produce an error signal', function () {
-    const signal = new q.Signal.error('foo');
+    const signal = new q.Signal.error({
+      messages: 'foo'
+    });
     assert.ok(signal);
     assert.equal('ERROR', signal.action);
-  })
+  });
+
+  it('should delete a signal', async function () {
+    this.timeout(5000);
+    const signal = new q.Signal({
+      origin: {
+        x: 5,
+        y: 5
+      },
+      points: [
+        [new q.Point('#FF0000')]
+      ],
+    });
+
+    return q.Signal.send(signal).then(result => {
+      console.log("##### Sent signal, got response: ");
+      console.log(JSON.stringify(result));
+      return new Promise((resolve, reject) => {
+        setTimeout(async () => {
+          return q.Signal.delete(result.body.id).then(result => {
+            resolve(true);
+          }).catch(error => {
+            reject(error);
+          })
+        }, 2000);
+      })
+    })
+  });
 });
 
 describe('QDesktopApplet', async function () {

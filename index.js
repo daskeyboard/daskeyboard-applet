@@ -1,5 +1,7 @@
 const request = require('request-promise');
-const { Storage } = require('./lib/storage');
+const {
+  Storage
+} = require('./lib/storage');
 const logger = require('./lib/logger');
 const utility = require('./lib/utility');
 const applicationConfig = require('./application.json');
@@ -13,15 +15,8 @@ const {
   Effects
 } = require('./lib/q-signal.js');
 
-
-const signalHeaders = {
-  "Content-Type": "application/json"
-}
-
 const defaultPollingInterval = 60000; // millisec.
-const backendUrl = applicationConfig.desktopBackendUrl;
-const signalEndpoint = backendUrl + '/api/2.0/signals';
-
+const maxSignalLogSize = 100;
 
 /**
  * The base class for apps that run on the Q Desktop
@@ -30,8 +25,9 @@ class QDesktopApp {
   constructor() {
     this.paused = false;
     this.configured = false;
-    
+
     this.oAuth2ProxyUri = oAuth2ProxyUri;
+    this.signalLog = [];
 
     process.on('SIGINT', (message) => {
       logger.info("Got SIGINT, handling shutdown...");
@@ -209,61 +205,30 @@ class QDesktopApp {
       logger.error(message);
       throw new Error(message);
     } else {
+      signal.origin = this.geometry.origin;
       const height = this.getHeight();
       const width = this.getWidth();
-      const originX = this.getOriginX();
-      const originY = this.getOriginY();
 
-      const actionValue = [];
-
-      //logger.info("Signal is: " + JSON.stringify(signal));
-
+      // trim the points so it can't exceed the geometry
+      signal.points = signal.points.slice(0, height);
       const rows = signal.points;
-      for (let y = 0; y < rows.length && y < height; y++) {
-        const columns = rows[y];
-        for (let x = 0; x < columns.length && x < width; x++) {
-          const point = columns[x];
-          actionValue.push({
-            zoneId: (originX + x) + ',' + (originY + y),
-            effect: point.effect,
-            color: point.color
-          });
+      for (let i = 0; i < rows.length; i += 1) {
+        rows[i] = rows[i].slice(0, width);
+      }
+
+      return QDesktopSignal.send(signal).then(result => {
+        signal.id = result.body.id;
+
+        this.signalLog.push({
+          signal: signal,
+          result: result,
+        });
+
+        while (this.signalLog.length > maxSignalLogSize) {
+          this.signalLog.shift();
         }
-      }
 
-      const body = {
-        action: signal.action,
-        actionValue: JSON.stringify(actionValue),
-        clientName: this.extensionId,
-        data: signal.data,
-        link: signal.link,
-        errors: signal.errors,
-        isMuted: signal.isMuted,
-        message: signal.message,
-        name: signal.name,
-        pid: "Q_MATRIX",
-      }
-
-      logger.info("Posting to local service:" + JSON.stringify(body));
-
-      return request.post({
-        uri: signalEndpoint,
-        headers: signalHeaders,
-        body: body,
-        json: true,
-        resolveWithFullResponse: true
-      }).then(function (response) {
-        logger.info('Signal service responded with status: ' +
-          response.statusCode);
-        return response;
-      }).catch(function (err) {
-        const error = err.error;
-        if (error.code === 'ECONNREFUSED') {
-          logger.error(`Error: failed to connect to ${signalEndpoint}, make sure` +
-            ` the Das Keyboard Q software  is running`);
-        } else {
-          logger.error('Error sending signal ', error);
-        }        
+        return result;
       });
     }
   }
@@ -273,7 +238,10 @@ class QDesktopApp {
    * @param {Array<string>} messages 
    */
   async signalError(messages) {
-    return QDesktopSignal.error(messages);
+    return QDesktopSignal.send(QDesktopSignal.error({
+      applet: this,
+      messages: messages,
+    }));
   }
 
   /**
@@ -281,25 +249,25 @@ class QDesktopApp {
    * constant value, but may become dynamic in the future.
    * @param {boolean} force Forces a poll even if paused or busy
    */
-  poll(force) {
+  async poll(force) {
     if (!force && this.paused) {
       // no-op, we are paused
     } else if (!force && this.pollingBusy) {
       logger.info("Skipping run because we are still busy.");
     } else {
       this.pollingBusy = true;
-      this.run().then((signal) => {
+      return this.run().then((signal) => {
         this.errorState = null;
         this.pollingBusy = false;
 
         if (signal) {
-          this.signal(signal);
+          return this.signal(signal);
         }
       }).catch((error) => {
         this.errorState = error;
         logger.error(
           "Applet encountered an uncaught error in its main loop" + error);
-        this.signalError(error);          
+        this.signalError(error);
         this.pollingBusy = false;
       });
     }
@@ -404,6 +372,10 @@ class QDesktopApp {
       points: points,
       action: 'FLASH',
       isMuted: false,
+      origin: {
+        x: this.getOriginX(),
+        y: this.getOriginY(),
+      },
     });
 
     logger.info("Flashing with signal: " + JSON.stringify(signal));
@@ -423,8 +395,8 @@ class QDesktopApp {
       json: true
     };
 
-    logger.info("Proxying OAuth2 request with options: "
-      + JSON.stringify(options));
+    logger.info("Proxying OAuth2 request with options: " +
+      JSON.stringify(options));
 
     return request(options).catch((error) => {
       logger.error("Error while sending proxy request: " + error);
