@@ -219,7 +219,7 @@ class QDesktopApp {
       return QDesktopSignal.send(signal).then(result => {
         signal.id = result.body.id;
 
-        this.signalLog.push({
+        this.signalLog.unshift({
           signal: signal,
           result: result,
         });
