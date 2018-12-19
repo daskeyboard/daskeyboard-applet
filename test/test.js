@@ -5,6 +5,7 @@ class TestApplet extends q.DesktopApp {
   constructor() {
     super();
     this.foo = 'bar';
+    this.extensionId = Math.random() * 1000000 + '';
   }
 
   async run() {
