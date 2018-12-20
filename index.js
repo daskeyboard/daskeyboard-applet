@@ -56,7 +56,8 @@ class QDesktopApp {
     try {
       this.processConfig();
     } catch (error) {
-      throw new Error("Error while processing config.", error);
+      logger.error(`Error while processing config: ${error}`)
+      throw error;
     }
     logger.debug("Constructor finished.");
 
@@ -102,7 +103,7 @@ class QDesktopApp {
       this.configured = true;
       return true;
     } catch (error) {
-      logger.error("Error while running applyConfig() against instance" + error);
+      logger.error(`Error while running applyConfig() against instance ${error}`);
       throw error;
     }
   }
@@ -410,8 +411,8 @@ class QDesktopApp {
       JSON.stringify(options));
 
     return request(options).catch((error) => {
-      logger.error("Error while sending proxy request: " + error);
-      throw new Error("Error while sending proxy request", error);
+      logger.error(`Error while sending proxy request: ${error}`);
+      throw error;
     });
   }
 }
