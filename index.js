@@ -15,7 +15,7 @@ const {
   Effects
 } = require('./lib/q-signal.js');
 
-const defaultPollingInterval = 60000; // millisec.
+const defaultPollingInterval = 60000 * 5; // millisec.
 const maxSignalLogSize = 100;
 
 /**
