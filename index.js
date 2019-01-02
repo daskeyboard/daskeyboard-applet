@@ -228,6 +228,20 @@ class QDesktopApp {
         rows[i] = rows[i].slice(0, width);
       }
 
+      /*
+       * If the signal is an error, populate the applet with RED points
+       */
+      if (signal.action === 'ERROR') {
+        signal.points = [];
+        for (let i = 0; i < height; i++) {
+          const t = [];
+          for (let j = 0; j < width; j++) {
+            t.push(new QPoint('#FF0000'));
+          }
+          signal.points.push(t);
+        }
+      }
+
       return QDesktopSignal.send(signal).then(result => {
         signal.id = result.body.id;
 
@@ -250,10 +264,7 @@ class QDesktopApp {
    * @param {Array<string>} messages 
    */
   async signalError(messages) {
-    return QDesktopSignal.send(QDesktopSignal.error({
-      applet: this,
-      messages: messages,
-    }));
+    return this.signal(QDesktopSignal.error(messages));
   }
 
   /**
