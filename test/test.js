@@ -1,5 +1,11 @@
 const assert = require('assert');
 const q = require('../index.js');
+const authProxyBaseUri = require('./auth.json').oAuth2ProxyBaseUrl;
+const apiKey = require('./auth.json').apiKey;
+process.env = {
+  ...process.env,
+  oAuth2ProxyBaseUrlDefault: authProxyBaseUri
+}
 
 class TestApplet extends q.DesktopApp {
   constructor() {
@@ -100,8 +106,8 @@ describe('QDesktopApplet', async function () {
       assert.equal(mainTest.foo, 'bar');
     });
 
-    it('should have a oAuth2ProxyUri', function () {
-      assert.ok(mainTest.oAuth2ProxyUri);
+    it('should have a oAuth2ProxyBaseUrlDefault', function () {
+      assert.ok(mainTest.oAuth2ProxyBaseUrlDefault);
     })
   });
   describe('#run()', function () {
@@ -210,6 +216,27 @@ describe('QDesktopApplet', async function () {
     });
   })
 });
+
+// describe('Oauth2ProxyRequest', function () {
+//   beforeEach(function () {
+//     this.proxy = new q.Oauth2ProxyRequest({
+//       apiKey: apiKey
+//     });
+//   })
+//   it('should getOauth2ProxyToken', async function () {
+
+//     return this.proxy.getOauth2ProxyToken().then(result => {
+//       assert.ok(result.access_token);
+//       assert.ok(result);
+//     }).catch(err => assert.fail(err));
+//   });
+
+//   it('should getOauth2ProxyClientPayload', async function () {
+//     return this.proxy.getOauth2ProxyClientPayload().then(result => {
+//       assert.ok(result);
+//     }).catch(err => assert.fail(err));
+//   });
+// });
 
 async function buildApp() {
   const test = new TestApplet();
