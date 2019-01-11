@@ -6,8 +6,8 @@ const logger = require('./lib/logger');
 const utility = require('./lib/utility');
 const applicationConfig = require('./application.json');
 
-const oAuth2ProxyUri = process.env.oAuth2ProxyUri ||
-  applicationConfig.oAuth2ProxyUriDefault;
+const oAuth2ProxyBaseUrlDefault = process.env.oAuth2ProxyBaseUrlDefault ||
+  applicationConfig.oAuth2ProxyBaseUrlDefault;
 
 const {
   QDesktopSignal,
@@ -26,7 +26,7 @@ class QDesktopApp {
     this.paused = false;
     this.configured = false;
 
-    this.oAuth2ProxyUri = oAuth2ProxyUri;
+    this.oAuth2ProxyBaseUrlDefault = oAuth2ProxyBaseUrlDefault;
     this.signalLog = [];
 
     process.on('SIGINT', async (message) => {
@@ -413,7 +413,7 @@ class QDesktopApp {
   async oauth2ProxyRequest(proxyRequest) {
     const options = {
       method: 'POST',
-      uri: oAuth2ProxyUri,
+      uri: oAuth2ProxyBaseUrlDefault + `/proxy`,
       body: proxyRequest,
       json: true
     };
@@ -423,6 +423,69 @@ class QDesktopApp {
 
     return request(options).catch((error) => {
       logger.error(`Error while sending proxy request: ${error}`);
+      throw error;
+    });
+  }
+
+  /**
+   * Get an Oauth2 access token from the proxy
+   * @param {*} proxyRequest 
+   */
+  async oauth2ProxyGetToken(proxyRequest) {
+    const options = {
+      method: 'GET',
+      uri: oAuth2ProxyBaseUrlDefault + `/token`,
+      qs: {
+        apiKey: proxyRequest.apiKey
+      },
+      json: true
+    }
+    logger.info(`Getting OAuth2 access token from proxy with options: ${JSON.stringify(options)}`);
+
+    return request(options).catch((error) => {
+      logger.error(`Error while getting access token from proxy: ${error}`);
+      throw error;
+    });
+  }
+
+  /**
+   * Refresh an Oauth2 access token from the proxy
+   * @param {*} proxyRequest 
+   */
+  async oauth2RefreshAccessToken(proxyRequest) {
+    const options = {
+      method: 'GET',
+      uri: oAuth2ProxyBaseUrlDefault + `/refresh_my_access_token`,
+      qs: {
+        apiKey: proxyRequest.apiKey
+      },
+      json: true
+    }
+    logger.info(`Refreshing OAuth2 access token from proxy with options: ${JSON.stringify(options)}`);
+
+    return request(options).catch((error) => {
+      logger.error(`Error while refresshingaccess token from proxy: ${error}`);
+      throw error;
+    });
+  }
+
+  /**
+   * Get the applet Oauth2 Client payload from the proxy
+   * @param {*} proxyRequest 
+   */
+  async oauth2ProxyGetClientPayload(proxyRequest) {
+    const options = {
+      method: 'GET',
+      uri: oAuth2ProxyBaseUrlDefault + `/applet_payload`,
+      qs: {
+        apiKey: proxyRequest.apiKey
+      },
+      json: true
+    }
+    logger.info(`Getting OAuth client payload from proxy with options: ${JSON.stringify(options)}`);
+
+    return request(options).then(body => body.payload).catch((error) => {
+      logger.error(`Error while getting OAuth client payload from proxy: ${error}`);
       throw error;
     });
   }
