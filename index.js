@@ -402,7 +402,11 @@ class QDesktopApp {
     });
 
     logger.info("Flashing with signal: " + JSON.stringify(flash));
-    return QDesktopSignal.send(flash);
+    return QDesktopSignal.send(flash).then(() => {
+      // send the latest signal
+      const latestSignal = this.signalLog[0];
+      return QDesktopSignal.send(latestSignal);
+    });
   }
 
 
