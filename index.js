@@ -245,13 +245,15 @@ class QDesktopApp {
       return QDesktopSignal.send(signal).then(result => {
         signal.id = result.body.id;
 
+        // add the new signal to the begining of the signal log array
         this.signalLog.unshift({
           signal: signal,
           result: result,
         });
 
+        // remove the oldest signal logs
         while (this.signalLog.length > maxSignalLogSize) {
-          this.signalLog.shift();
+          this.signalLog.pop();
         }
 
         return result;
@@ -404,8 +406,10 @@ class QDesktopApp {
     logger.info("Flashing with signal: " + JSON.stringify(flash));
     return QDesktopSignal.send(flash).then(() => {
       // send the latest signal
-      const latestSignal = this.signalLog[0];
-      return QDesktopSignal.send(latestSignal);
+      const latestSignalLog = this.signalLog[0];
+      if (latestSignalLog) {
+        return QDesktopSignal.send(latestSignalLog.signal);
+      }
     });
   }
 
