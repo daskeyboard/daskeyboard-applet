@@ -121,8 +121,8 @@ describe('QDesktopApplet', async function () {
   });
   describe('#flash()', function () {
     it('should flash', function () {
-      return mainTest.handleFlash().then(result => assert.ok(result))
-        .catch(error => assert.fail(error));
+      return mainTest.handleFlash().then(() => {
+      }).catch(error => assert.fail(error));
     })
   });
   describe('#getWidth()', function () {
@@ -172,6 +172,27 @@ describe('QDesktopApplet', async function () {
         assert.equal(signal.id, test.signalLog[0].signal.id);
       }).catch(error => assert.fail(error));
     })
+  });
+  describe('#clearSignals', () => {
+    it('should clear signals', async function () {
+      const test = await buildApp();
+      const signal1 = new q.Signal({
+        points: [
+          [new q.Point('#00FF00'), new q.Point('#FF0000')]
+        ]
+      })
+      const signal2 = new q.Signal({
+        points: [
+          [new q.Point('#00FF00'), new q.Point('#FF0000')]
+        ]
+      })
+      return Promise.all([test.signal(signal1), test.signal(signal2)]).then(result => {
+        return test.clearSignals().then(() => {
+          assert.equal(test.signalLog.length, 0);
+        }).catch(err => assert.fail(err));
+
+      }).catch(err => assert.fail(err));
+    });
   });
   describe('#signalError()', function () {
     it('should signalError', function () {

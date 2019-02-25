@@ -127,6 +127,10 @@ When specifying `"controlType": "search"`, the extension host will invoke the
 method `#options(fieldId, search)`, where `search` is a string contain the
 user's search term(s).
 
+## clearSignals()
+
+Will clear all the signals on the applet
+
 
 
 # Creating Signals

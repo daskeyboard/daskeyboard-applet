@@ -437,6 +437,21 @@ class QDesktopApp {
     });
   }
 
+  /**
+   * Clears all the signals for an applet
+   */
+  async clearSignals() {
+    logger.info(`Clearing signals`);
+    while (this.signalLog && this.signalLog.length) {
+      const signal = this.signalLog.pop().signal;
+      logger.info(`Deleting previous signal: ${signal.id}`)
+      await QDesktopSignal.delete(signal).catch((err) => {
+      });
+      logger.info(`Deleted the signal: ${signal.id}`);
+    }
+    logger.info(`Cleared signals`);
+  }
+
 
 }
 
