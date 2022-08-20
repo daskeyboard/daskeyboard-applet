@@ -212,20 +212,24 @@ class QDesktopApp {
    */
   async signal(signal) {
     signal.extensionId = this.extensionId;
-    if (!this.geometry || !this.geometry.origin) {
+    if (!this.geometry || !this.geometry.origin || this.geometry.origin.x == null || this.geometry.origin.y == null) {
       const message = "Geometry is not properly defined:" + this.geometry;
       logger.error(message);
       throw new Error(message);
     } else {
-      signal.origin = this.geometry.origin;
-      const height = this.getHeight();
-      const width = this.getWidth();
+      if (!signal.origin) {
+        signal.origin = this.geometry.origin
+      }
+      const offsetX = signal.origin.x - this.geometry.origin.x
+      const offsetY = signal.origin.y - this.geometry.origin.y
+      const remainingPointsY = this.getHeight() - offsetY;
+      const remainingPointsX = this.getWidth() - offsetX;
 
       // trim the points so it can't exceed the geometry
-      signal.points = signal.points.slice(0, height);
+      signal.points = signal.points.slice(0, remainingPointsY);
       const rows = signal.points;
-      for (let i = 0; i < rows.length; i += 1) {
-        rows[i] = rows[i].slice(0, width);
+      for (let i = 0; i < rows.length; i++) {
+        rows[i] = rows[i].slice(0, remainingPointsX);
       }
 
       /*
@@ -233,9 +237,9 @@ class QDesktopApp {
        */
       if (signal.action === 'ERROR') {
         signal.points = [];
-        for (let i = 0; i < height; i++) {
+        for (let i = 0; i < remainingPointsY; i++) {
           const t = [];
-          for (let j = 0; j < width; j++) {
+          for (let j = 0; j < remainingPointsX; j++) {
             t.push(new QPoint('#FF0000'));
           }
           signal.points.push(t);
@@ -281,14 +285,22 @@ class QDesktopApp {
       logger.info("Skipping run because we are still busy.");
     } else {
       this.pollingBusy = true;
-      return this.run().then((signal) => {
+      return this.run().then((signalResponse) => {
         this.errorState = null;
         this.pollingBusy = false;
 
-        if (signal) {
-          return this.signal(signal);
+        if (signalResponse) {
+          let signalsToSend = []
+          if (Array.isArray(signalResponse)) {
+            signalsToSend = signalResponse
+          } else {
+            signalsToSend = [signalResponse]
+          }
+
+          return Promise.all(signalsToSend.map((s) => this.signal(s)));
         }
       }).catch((error) => {
+        console.error(error)
         this.errorState = error;
         logger.error(
           "Applet encountered an uncaught error in its main loop" + error);
