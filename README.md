@@ -333,13 +333,4 @@ You can remove all applets and associated files using one of two ways:
   rm -rf ~/.quio/v2/q_storage
   ```
 - Restart the Q Desktop App
-
-## Reset using a POST
-Using `curl` you can remove all applets with the command:
-```
-curl -X POST \
-  http://localhost:27302/reset \
-  -H 'Cache-Control: no-cache' \
-  -H 'Postman-Token: 0a88b369-1c86-4374-a111-f6ac99344ea9'
-```
   
